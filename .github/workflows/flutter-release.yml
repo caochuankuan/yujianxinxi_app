@@ -1,4 +1,4 @@
-name: Build and Release APK
+name: Dart
 
 on:
   push:
@@ -13,21 +13,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 设置 Dart 和 Flutter 环境
+      # Note: This workflow uses the latest stable version of the Dart SDK.
+      # You can specify other versions if desired, see documentation here:
+      # https://github.com/dart-lang/setup-dart/blob/main/README.md
+      # - uses: dart-lang/setup-dart@v1
       - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
-      - name: 设置 Flutter 环境
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'latest'
 
-      - name: 安装依赖
-        run: flutter pub get
+      - name: Install dependencies
+        run: dart pub get
 
-      - name: 分析代码
-        run: flutter analyze
+      # Uncomment this step to verify the use of 'dart format' on each commit.
+      # - name: Verify formatting
+      #   run: dart format --output=none --set-exit-if-changed .
 
-      # 分架构构建 APK
-      - name: 构建 APK（arm64 和 x86_64）
+      # Consider passing '--fatal-infos' for slightly stricter analysis.
+      - name: Analyze project source
+        run: dart analyze
+
+      # Your project will need to have tests in test/ and a dependency on
+      # package:test for this step to succeed. Note that Flutter projects will
+      # want to change this to 'flutter test'.
+      - name: Run tests
+        run: dart test
+
+      # 生成构建产物（APK）
+      - name: 构建 APK
         run: |
           flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
@@ -38,7 +48,7 @@ jobs:
         with:
           files: build/app/outputs/flutter-apk/*.apk
 
-      # 上传 APK 到 Release
+      # 上传 APK 到 GitHub Release
       - name: 上传 APK 到 Release
         uses: softprops/action-gh-release@v1
         with:
