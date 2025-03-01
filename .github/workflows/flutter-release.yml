@@ -28,13 +28,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
-      # 5. 创建 Git 标签
-      - name: Create Git tag
-        run: |
-          git tag -a v$(date +'%Y%m%d%H%M%S') -m "Release APK"
-          git push origin --tags
-
-      # 6. 创建 GitHub Release
+      # 5. 创建 GitHub Release
       - name: Create GitHub Release
         id: release
         uses: softprops/action-gh-release@v1
@@ -43,7 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. 上传 APK 到 Release
+      # 6. 上传 APK 到 Release
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v1
         with:
