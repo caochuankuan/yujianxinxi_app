@@ -23,6 +23,7 @@ import 'package:yifeng_site/zhihu_page.dart';
 import 'douyin_page.dart';
 import 'news_page.dart';
 import 'package:quick_actions/quick_actions.dart';
+import 'package:yifeng_site/browser_page.dart';
 
 // 主程序入口
 void main() {
@@ -61,7 +62,10 @@ class _MyAppState extends State<MyApp> {
       } else if (shortcutType == 'action_two') {
         print('Action two triggered');
         navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (context) => DailyNewsPage(futureData: fetchDailyNewsData(),)),
+          MaterialPageRoute(
+              builder: (context) => DailyNewsPage(
+                    futureData: fetchDailyNewsData(),
+                  )),
         );
       }
     });
@@ -658,7 +662,7 @@ class _YifengState extends State<Yifeng> {
     return await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.bestForNavigation,
       forceAndroidLocationManager: true,
-      timeLimit: Duration(seconds: 10),  
+      timeLimit: Duration(seconds: 10),
     );
   }
 
@@ -730,27 +734,52 @@ class _YifengState extends State<Yifeng> {
       'page': DailyNewsPage(futureData: fetchDailyNewsData()),
     },
     {
-      'text': '摸鱼日报',
-      'icon': Icons.today,
-      'page': MoyuRibaoPage(),
-    },
-    {
-      'text': '历史上的今天',
-      'icon': Icons.history,
-      'page': TodayInHistoryPage(),
+      'text': '逸风浏览器',
+      'icon': Icons.public,
+      'page': const BrowserPage(),
     },
     {
       'text': '抖音热搜',
       'icon': Icons.trending_up,
       'page': DouyinPage(),
-    }
-  ];
-
-  final List<Map<String, dynamic>> _imageItems = [
+    },
     {
       'text': 'Bilibili热搜',
       'icon': Icons.video_library,
       'page': BilibiliPage(),
+    },
+  ];
+
+  final List<Map<String, dynamic>> _imageItems = [
+    {
+      'text': '头条热搜',
+      'icon': Icons.dashboard,
+      'page': NewsPage(),
+    },
+    {
+      'text': '知乎热搜',
+      'icon': Icons.question_answer,
+      'page': ZhihuPage(futureData: fetchZhihuData()),
+    },
+    {
+      'text': '微博热搜',
+      'icon': Icons.public,
+      'page': WeiboPage(futureData: fetchWeiboData()),
+    },
+    {
+      'text': '摸鱼日报',
+      'icon': Icons.today,
+      'page': MoyuRibaoPage(),
+    },
+    {
+      'text': '新闻简报',
+      'icon': Icons.newspaper,
+      'page': XinwenJianbaoPage(),
+    },
+    {
+      'text': '历史上的今天',
+      'icon': Icons.history,
+      'page': TodayInHistoryPage(),
     },
     {
       'text': 'Bing 每日壁纸',
@@ -778,29 +807,9 @@ class _YifengState extends State<Yifeng> {
       'page': XingzuoYunshiPage(),
     },
     {
-      'text': '头条热搜',
-      'icon': Icons.dashboard,
-      'page': NewsPage(),
-    },
-    {
-      'text': '知乎热搜',
-      'icon': Icons.question_answer,
-      'page': ZhihuPage(futureData: fetchZhihuData()),
-    },
-    {
-      'text': '微博热搜',
-      'icon': Icons.public,
-      'page': WeiboPage(futureData: fetchWeiboData()),
-    },
-    {
       'text': '明星八卦',
       'icon': Icons.star,
       'page': MingxingBaguaPage(),
-    },
-    {
-      'text': '新闻简报',
-      'icon': Icons.newspaper,
-      'page': XinwenJianbaoPage(),
     },
     {
       'text': '待开发',
