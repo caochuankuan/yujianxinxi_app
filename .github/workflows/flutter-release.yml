@@ -14,6 +14,14 @@ jobs:
       # 1. Checkout code
       - uses: actions/checkout@v4
 
+      # 输出当前工作目录和文件列表以进行调试
+      - name: 查看工作目录
+        run: |
+          echo "当前目录：$(pwd)"
+          echo "目录内容："
+          ls -la
+
+
       # 2. 设置 Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -21,8 +29,16 @@ jobs:
           flutter-version: '3.24.4'
 
       # 3. 切换到 Flutter 项目目录（如果项目在子目录中）
-      - name: Change directory to Flutter project
-        run: cd yujianxinxi_app  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
+      # - name: Change directory to Flutter project
+      #   run: cd yujianxinxi_app  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
+
+     # 输出当前工作目录和文件列表以进行调试
+      - name: 查看工作目录
+        run: |
+          echo "当前目录：$(pwd)"
+          echo "目录内容："
+          ls -la
+
 
       # 4. 安装依赖
       - name: Install dependencies
