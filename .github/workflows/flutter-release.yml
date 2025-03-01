@@ -1,4 +1,4 @@
-name: Dart
+name: Android CI
 
 on:
   push:
@@ -10,31 +10,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-   
     steps:
-      # 1. Flutter 설치
+      # 1. Checkout code
+      - uses: actions/checkout@v4
+
+      # 2. 设置 Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.4'
 
-      # 2. 의존성 설치
+      # 3. 切换到 Flutter 项目目录（如果项目在子目录中）
+      - name: Change directory to Flutter project
+        run: cd my_flutter_project  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
+
+      # 4. 安装依赖
       - name: Install dependencies
         run: flutter pub get
 
-      # 生成构建产物（APK）
+      # 5. 构建 APK
       - name: 构建 APK
-        run: |
-          flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
-      # 创建 GitHub Release
+      # 6. 创建 GitHub Release
       - name: 创建 GitHub Release
         id: release
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/*.apk
 
-      # 上传 APK 到 GitHub Release
+      # 7. 上传 APK 到 GitHub Release
       - name: 上传 APK 到 Release
         uses: softprops/action-gh-release@v1
         with:
