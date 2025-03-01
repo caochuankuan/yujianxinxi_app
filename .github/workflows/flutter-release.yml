@@ -1,58 +1,68 @@
-name: Flutter Release Build
+name: Build and Release APK
 
 on:
   push:
-    tags:
-      - 'v*'  # 以 "v" 开头的 tag 触发（如 v1.0.0）
-  workflow_dispatch:  # 允许手动触发
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Flutter
+      # 设置 Dart 和 Flutter 环境
+      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+      - name: 设置 Flutter 环境
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
-          cache: false
+          flutter-version: 'latest'
 
-      - name: Install dependencies
+      - name: 安装依赖
         run: flutter pub get
 
-      - name: Analyze project source
+      - name: 分析代码
         run: flutter analyze
 
-      - name: Run tests
-        run: flutter test
+      # 分架构构建 APK
+      - name: 构建 APK（arm64 和 x86_64）
+        run: |
+          flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
-      - name: Build APK
-        run: flutter build apk --release
-
-      - name: Build AppBundle
-        run: flutter build appbundle
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      # 创建一个 GitHub Release
+      - name: 创建 GitHub Release
+        id: release
+        uses: gh-actions/create-release@v1
         with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          tag_name: ${{ github.sha }}
+          release_name: "Release ${{ github.sha }}"
+          body: "自动发布 APK 文件"
+          draft: false
+          prerelease: false
 
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
+      # 上传 APK 到 GitHub Release
+      - name: 上传 APK 到 Release
+        uses: gh-actions/upload-release-asset@v1
         with:
-          name: release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: app-release-arm64.apk
+          asset_content_type: application/vnd.android.package-archive
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+      - name: 上传 x86 APK 到 Release
+        uses: gh-actions/upload-release-asset@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release-x86.apk
+          asset_name: app-release-x86.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: 上传 x64 APK 到 Release
+        uses: gh-actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release-x64.apk
+          asset_name: app-release-x64.apk
+          asset_content_type: application/vnd.android.package-archive
