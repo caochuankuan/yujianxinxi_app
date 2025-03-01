@@ -11,16 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout 代码
       - uses: actions/checkout@v4
-
-      # 输出当前工作目录和文件列表以进行调试
-      - name: 查看工作目录
-        run: |
-          echo "当前目录：$(pwd)"
-          echo "目录内容："
-          ls -la
-
 
       # 2. 设置 Flutter
       - name: Set up Flutter
@@ -28,35 +20,31 @@ jobs:
         with:
           flutter-version: '3.24.4'
 
-      # 3. 切换到 Flutter 项目目录（如果项目在子目录中）
-      # - name: Change directory to Flutter project
-      #   run: cd yujianxinxi_app  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
-
-     # 输出当前工作目录和文件列表以进行调试
-      - name: 查看工作目录
-        run: |
-          echo "当前目录：$(pwd)"
-          echo "目录内容："
-          ls -la
-
-
-      # 4. 安装依赖
+      # 3. 安装依赖
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. 构建 APK
-      - name: 构建 APK
+      # 4. 构建 APK
+      - name: Build APK
         run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
+      # 5. 创建 Git 标签
+      - name: Create Git tag
+        run: |
+          git tag -a v$(date +'%Y%m%d%H%M%S') -m "Release APK"
+          git push origin --tags
+
       # 6. 创建 GitHub Release
-      - name: 创建 GitHub Release
+      - name: Create GitHub Release
         id: release
         uses: softprops/action-gh-release@v1
         with:
           files: build/app/outputs/flutter-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. 上传 APK 到 GitHub Release
-      - name: 上传 APK 到 Release
+      # 7. 上传 APK 到 Release
+      - name: Upload APK to Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
