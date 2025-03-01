@@ -2,14 +2,15 @@ name: Android CI
 
 on:
   push:
-    tags:
-      - '*'  # 监听标签推送
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag name for the release'
-        required: false
-        default: ''  # 默认空，表示没有标签时自动生成
+        required: true
+        default: 'v1.0.0'
 
 jobs:
   build:
@@ -19,56 +20,31 @@ jobs:
       # 1. Checkout 代码
       - uses: actions/checkout@v4
 
-      # 2. 设置 Flutter（已注释掉，暂时不构建实际产物）
-      # - name: Set up Flutter
-      #   uses: subosito/flutter-action@v2
-      #   with:
-      #     flutter-version: '3.24.4'
+      # 2. 设置 Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.4'
 
-      # 3. 安装依赖（已注释掉，暂时不构建实际产物）
-      # - name: Install dependencies
-      #   run: flutter pub get
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: flutter pub get
 
-      # 4. 获取 Flutter 项目版本号（如果没有传入标签）
-      - name: Get version from pubspec.yaml
-        id: get_version
-        run: |
-          version=$(yq e '.version' pubspec.yaml || echo "v1.0.0")
-          echo "Version from pubspec.yaml: $version"
-          echo "::set-output name=version::$version"
+      # 4. 构建 APK
+      - name: Build APK
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
-      # 5. 如果没有手动提供标签，则自动生成标签
-      - name: Set GitHub Tag
-        id: tag
-        run: |
-          if [ -z "${{ github.event.inputs.tag_name }}" ]; then
-            echo "No tag provided, using version from pubspec.yaml as tag: ${{ steps.get_version.outputs.version }}"
-            echo "::set-output name=tag::${{ steps.get_version.outputs.version }}"
-          else
-            echo "Using provided tag: ${{ github.event.inputs.tag_name }}"
-            echo "::set-output name=tag::${{ github.event.inputs.tag_name }}"
-          fi
-
-      # 6. 创建 GitHub Release（需要 Git 标签触发）
+      # 5. 创建 GitHub Release
       - name: Create GitHub Release
         id: release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}  # 使用从版本号或手动传入的标签
+          tag_name: ${{ github.event.inputs.tag_name }}
           files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. 创建空的 APK 产物用于测试
-      - name: Create empty APK for testing
-        run: |
-          mkdir -p build/app/outputs/flutter-apk
-          touch build/app/outputs/flutter-apk/app-release.apk
-          touch build/app/outputs/flutter-apk/app-release-arm64.apk
-          touch build/app/outputs/flutter-apk/app-release-x86.apk
-          touch build/app/outputs/flutter-apk/app-release-x64.apk
-
-      # 8. 上传空的 APK 到 Release
+      # 6. 上传 APK 到 Release
       - name: Upload APK to Release
         uses: softprops/action-gh-release@v1
         with:
