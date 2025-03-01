@@ -1,7 +1,6 @@
 name: Flutter Release Build
 
 on:
-  workflow_dispatch: # 允许手动触发
   push:
     tags:
       - 'v*'  # 以 "v" 开头的 tag 触发（如 v1.0.0）
@@ -17,10 +16,14 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'master'
+          flutter-version: 'stable'  # 使用 stable 版本
+          cache: false  # 禁用缓存，确保获取最新的 Flutter 版本
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Analyze project source
+        run: flutter analyze
 
       - name: Run tests
         run: flutter test
