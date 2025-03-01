@@ -22,7 +22,7 @@ jobs:
 
       # 3. 切换到 Flutter 项目目录（如果项目在子目录中）
       - name: Change directory to Flutter project
-        run: cd my_flutter_project  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
+        run: cd yujianxinxi_app  # 如果 Flutter 项目在子目录 'my_flutter_project' 中，修改路径
 
       # 4. 安装依赖
       - name: Install dependencies
