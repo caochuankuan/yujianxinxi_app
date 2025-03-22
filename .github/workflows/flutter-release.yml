@@ -2,9 +2,8 @@ name: Android CI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*'  # 匹配所有以 v 开头的标签，如 v1.0.0
   workflow_dispatch:
     inputs:
       tag_name:
