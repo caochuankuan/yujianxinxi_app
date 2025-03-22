@@ -1,0 +1,55 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for the release'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout 代码
+      - uses: actions/checkout@v4
+
+      # 2. 设置 Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.4'
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: flutter pub get
+
+      # 4. 构建 APK
+      - name: Build APK
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+
+      # 5. 创建 GitHub Release
+      - name: Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          files: build/app/outputs/flutter-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 6. 上传 APK 到 Release
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/flutter-apk/app-release-arm64.apk
+            build/app/outputs/flutter-apk/app-release-x86.apk
+            build/app/outputs/flutter-apk/app-release-x64.apk
