@@ -182,7 +182,7 @@ class _BingWallpaperPageState extends State<BingWallpaperPage> {
 
 // 获取 Bing 每日壁纸数据
 Future<BingWallpaperApiResponse> fetchBingWallpaperData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/bing'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/bing'));
 
   if (response.statusCode == 200) {
     return BingWallpaperApiResponse.fromJson(jsonDecode(response.body));
@@ -212,14 +212,15 @@ class BingWallpaperApiResponse {
   });
 
   factory BingWallpaperApiResponse.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
     return BingWallpaperApiResponse(
-      date: json['data']['date'],
-      headline: json['data']['headline'],
-      title: json['data']['title'],
-      description: json['data']['description'],
-      imageUrl: json['data']['image_url'],
-      mainText: json['data']['main_text'],
-      copyright: json['data']['copyright'],
+      date: data['update_date'] ?? '',
+      headline: data['headline'] ?? '',
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      imageUrl: data['cover'] ?? '', // 注意这里改成了 cover
+      mainText: data['main_text'] ?? '',
+      copyright: data['copyright'] ?? '',
     );
   }
 }

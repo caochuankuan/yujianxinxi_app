@@ -16,6 +16,24 @@ class XingzuoYunshiPage extends StatefulWidget {
 class _XingzuoYunshiPageState extends State<XingzuoYunshiPage> {
   late Future<String> _futureImageUrl;
   bool isDownloading = false;
+  DateTime selectedDate = DateTime.now();  // 添加日期状态
+
+  // 添加日期选择方法
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        selectedDate = picked;
+        final formattedDate = "${picked.year}${picked.month.toString().padLeft(2, '0')}${picked.day.toString().padLeft(2, '0')}";
+        _futureImageUrl = Future.value('https://dayu.qqsuu.cn/xingzuoyunshi/file/$formattedDate.png');
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -36,6 +54,11 @@ class _XingzuoYunshiPageState extends State<XingzuoYunshiPage> {
       appBar: AppBar(
         title: Text('星座运势'),
         actions: [
+          // 日期选择按钮
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () => _selectDate(context),
+          ),
           // 刷新按钮
           IconButton(
             icon: Icon(Icons.refresh),
@@ -116,7 +139,20 @@ class _XingzuoYunshiPageState extends State<XingzuoYunshiPage> {
                     }
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return Center(child: Text('图片加载失败'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text('图片加载失败，请尝试选择其他日期'),
+                          const SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: () => _selectDate(context),
+                            icon: const Icon(Icons.calendar_today),
+                            label: const Text('选择日期'),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 ),
               ),

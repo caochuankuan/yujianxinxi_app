@@ -48,6 +48,9 @@ dependencies:
   quick_actions: ^1.1.0
   webview_flutter: ^4.4.2
   share_plus: ^10.1.4
+  device_preview: ^1.2.0
+  device_preview_screenshot: ^1.0.0
+  clay_containers: ^0.3.4
 
 dev_dependencies:
   flutter_test:

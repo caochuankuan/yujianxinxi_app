@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'package:clay_containers/constants.dart';
+import 'package:clay_containers/widgets/clay_container.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart'; // 导入 geolocator
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,11 +14,13 @@ import 'package:yifeng_site/bilibili_page.dart';
 import 'package:yifeng_site/bing_wallpaper_page.dart';
 import 'package:yifeng_site/daily_news_page.dart';
 import 'package:yifeng_site/epic_free_games_page.dart';
+import 'package:yifeng_site/global_box_office_page.dart';
 import 'package:yifeng_site/mingxing_bagua.dart';
 import 'package:yifeng_site/moyu_rili.dart';
 import 'package:yifeng_site/moyuribao_page.dart';
 import 'package:yifeng_site/neihan_duanzi.dart';
 import 'package:yifeng_site/today_in_history_page.dart';
+import 'package:yifeng_site/web_viewer.dart';
 import 'package:yifeng_site/weibo_page.dart';
 import 'package:yifeng_site/xingzuo_yunshi.dart';
 import 'package:yifeng_site/xinwen_jianbao.dart';
@@ -24,6 +29,9 @@ import 'douyin_page.dart';
 import 'news_page.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:yifeng_site/browser_page.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:device_preview_screenshot/device_preview_screenshot.dart';
+import 'package:path_provider/path_provider.dart';
 
 // 主程序入口
 void main() {
@@ -39,8 +47,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // 定义一个布尔变量来控制是否为夜间模式
-  bool _isDarkMode = false;
+  bool _isDarkMode = false; // 是否为夜间模式
+  bool useDevicePreview = false; // 设备预览开关
   String shortcut = 'no action set';
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -90,12 +98,22 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // 切换设备预览的方法
+  void _toggleDevicePreview() {
+    setState(() {
+      useDevicePreview = !useDevicePreview;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    final app = MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       title: '遇见信息',
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context), // 添加这行
+      builder: DevicePreview.appBuilder, // 添加这行
       theme: _isDarkMode
           ? ThemeData(
               brightness: Brightness.dark,
@@ -137,9 +155,42 @@ class _MyAppState extends State<MyApp> {
             ),
       home: Yifeng(
         isDarkMode: _isDarkMode,
+        useDevicePreview: useDevicePreview,
         toggleTheme: _toggleTheme,
+        toggleDevicePreview: _toggleDevicePreview, // 传递切换方法
       ),
     );
+
+    return useDevicePreview
+        ? DevicePreview(
+            enabled: true,
+            builder: (context) => app,
+            tools: [
+              ...DevicePreview.defaultTools,
+              DevicePreviewScreenshot(
+                onScreenshot: (context, screenshot) async {
+                  try {
+                    // 直接使用 ImageGallerySaverPlus 保存截图
+                    final result = await ImageGallerySaverPlus.saveImage(
+                      screenshot.bytes,
+                      name:
+                          'screenshot_${DateTime.now().millisecondsSinceEpoch}',
+                      quality: 100,
+                    );
+
+                    if (result != null && result['isSuccess']) {
+                      Fluttertoast.showToast(msg: '截图已保存到相册');
+                    } else {
+                      throw Exception('保存截图失败');
+                    }
+                  } catch (e) {
+                    Fluttertoast.showToast(msg: e.toString());
+                  }
+                },
+              ),
+            ],
+          )
+        : app;
   }
 
   // 切换夜间模式的方法
@@ -152,8 +203,16 @@ class _MyAppState extends State<MyApp> {
 
 class Yifeng extends StatefulWidget {
   late final bool isDarkMode;
+  final bool useDevicePreview;
   late final VoidCallback toggleTheme;
-  Yifeng({required this.isDarkMode, required this.toggleTheme});
+  late final VoidCallback toggleDevicePreview;
+
+  Yifeng({
+    required this.isDarkMode,
+    required this.toggleTheme,
+    required this.useDevicePreview,
+    required this.toggleDevicePreview,
+  });
 
   @override
   _YifengState createState() => _YifengState();
@@ -173,34 +232,61 @@ class _YifengState extends State<Yifeng> {
 
   @override
   Widget build(BuildContext context) {
+        // 使用 Theme.of(context) 来获取当前主题
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
     return Scaffold(
       appBar: AppBar(
         title: const Text('遇见信息'),
         centerTitle: true,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.info_outline),
-          onPressed: () {
-            showAboutDialog(
-              context: context,
-              applicationName: '遇见信息',
-              applicationVersion: '1.0.1',
-              applicationIcon: const Image(
-                image: AssetImage('assets/icon/app.png'),
-                width: 50,
-                height: 50,
-              ),
-              children: [
-                Text('作者：于逸风'),
-                Text('联系方式：2835082172@qq.com'),
-                Text('GitHub：https://github.com/caochuankuan/'),
-              ],
-            );
-          },
+        leading: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.info_outline),
+              onPressed: () {
+                showAboutDialog(
+                  context: context,
+                  applicationName: '遇见信息',
+                  applicationVersion: '1.0.1',
+                  applicationIcon: const Image(
+                    image: AssetImage('assets/icon/app.png'),
+                    width: 50,
+                    height: 50,
+                  ),
+                  children: [
+                    Text('作者：于逸风'),
+                    Text('联系方式：2835082172@qq.com'),
+                    Text('GitHub：https://github.com/caochuankuan/'),
+                  ],
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.web),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WebViewer(
+                      initialUrl: 'http://news.chuankuan.com.cn',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
+        leadingWidth: 96, // 调整leading宽度以适应两个按钮
         actions: [
           IconButton(
-            icon: Icon(widget.isDarkMode
+            icon: Icon(widget.useDevicePreview
+                ? Icons.devices
+                : Icons.devices_outlined),
+            onPressed: widget.toggleDevicePreview, // 使用传入的方法
+          ),
+          IconButton(
+            icon: Icon(isDark
                 ? Icons.wb_sunny_outlined
                 : Icons.nightlight_round),
             onPressed: widget.toggleTheme,
@@ -212,165 +298,186 @@ class _YifengState extends State<Yifeng> {
           // 添加天气组件
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 0.0, vertical: 8.0), // 外部边距
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.0), // 圆角卡片
-                ),
-                elevation: 4.0, // 卡片阴影
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8.0),
+              child: ClayContainer(
+                height: 220,
+                spread: 2,
+                depth: 30,
+                borderRadius: 24,
+                curveType: CurveType.concave,
+                color:
+                    isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 12.0, horizontal: 16.0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16.0), // 圆角
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[900]
-                        : Colors.amberAccent, // 背景颜色
-                  ),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      weatherData == null
-                          ? const Center(
-                              child: CircularProgressIndicator(), // 显示加载状态
+                      isLoading
+                          ? Container(
+                              height: 180,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                             )
-                          : Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          : weatherData == null
+                              ? Container(
+                                  height: 180, // 设置与有数据时相近的高度
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              : Row(
                                   children: [
-                                    Row(
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.62,
+                                              child: Text(
+                                                location, // 显示城市名称
+                                                maxLines: 2, // 限制最多显示两行
+                                                overflow: TextOverflow
+                                                    .ellipsis, // 超出部分显示省略号
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              onPressed: refreshWeatherData,
+                                              icon: isLoading
+                                                  ? SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                                Color>(widget
+                                                                    .isDarkMode
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87),
+                                                      ),
+                                                    )
+                                                  : const Icon(Icons.refresh),
+                                            ),
+                                          ],
+                                        ),
                                         SizedBox(
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *
-                                              0.62,
+                                              0.7,
                                           child: Text(
-                                            location, // 显示城市名称
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Theme.of(context)
-                                                          .brightness ==
-                                                      Brightness.dark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                            ),
+                                            weatherData!['hourly']
+                                                ['description'],
                                           ),
                                         ),
-                                        IconButton(
-                                          onPressed: refreshWeatherData,
-                                          icon: isLoading
-                                              ? SizedBox(
-                                                  width: 12,
-                                                  height: 12,
-                                                  child:
-                                                      const CircularProgressIndicator(
-                                                    strokeWidth: 1,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            Colors.white),
-                                                  ),
-                                                )
-                                              : const Icon(Icons.refresh),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      width: MediaQuery.of(context).size.width *
-                                          0.7,
-                                      child: Text(
-                                        weatherData!['hourly']['description'],
-                                      ),
-                                    ),
-                                    Text(
-                                      '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[300]
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    Text(
-                                      '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[300]
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[300]
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[300]
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[300]
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Spacer(),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        SizedBox(
-                                          height: 30,
-                                        ),
-                                        getWeatherIcon(weatherData!['hourly']
-                                            ['cloudrate'][0]['value']),
                                         Text(
-                                          '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
+                                          '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
                                           style: TextStyle(
-                                            fontSize: 16,
+                                            fontSize: 14,
                                             color:
                                                 Theme.of(context).brightness ==
                                                         Brightness.dark
                                                     ? Colors.grey[300]
                                                     : Colors.black87,
                                           ),
-                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    // Spacer(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            getWeatherIcon(
+                                                weatherData!['hourly']
+                                                    ['cloudrate'][0]['value']),
+                                            Text(
+                                              '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                   ],
-                                ),
-                              ],
-                            )
+                                )
                     ],
                   ),
                 ),
@@ -380,22 +487,75 @@ class _YifengState extends State<Yifeng> {
           SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 5,
-              mainAxisSpacing: 5,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
               childAspectRatio: 1.2,
             ),
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 final item = _listItems[index];
-                return _buildCard(
-                  context,
-                  item['text']!,
-                  item['icon']!,
-                  item['page']!,
-                  widget.isDarkMode
-                      ? Colors.grey[800]!
-                      : Colors.deepPurpleAccent,
-                  widget.isDarkMode ? Colors.white : Colors.white,
+                final baseColor =
+                    isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
+
+                return Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (item['page'] is Text) {
+                        Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => item['page']),
+                      );
+                    },
+                    child: ClayContainer(
+                      height: double.infinity,
+                      width: double.infinity,
+                      color: baseColor,
+                      spread: 2,
+                      depth: 50,
+                      borderRadius: 24,
+                      curveType: CurveType.concave,
+                      customBorderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ClayContainer(
+                              height: 50,
+                              width: 50,
+                              depth: 80,
+                              spread: 2,
+                              borderRadius: 35,
+                              curveType: CurveType.convex,
+                              color: baseColor,
+                              child: Icon(
+                                item['icon'],
+                                size: 32,
+                                color: isDark
+                                    ? Color(0xFFBB86FC)
+                                    : Colors.deepPurpleAccent,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              item['text'],
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               },
               childCount: _listItems.length,
@@ -417,9 +577,10 @@ class _YifengState extends State<Yifeng> {
                   item['text']!,
                   item['icon']!,
                   item['page']!,
-                  widget.isDarkMode ? Colors.grey[700]! : Colors.orangeAccent,
-                  widget.isDarkMode ? Colors.white : Colors.black87,
+                  isDark ? Colors.grey[700]! : Colors.orangeAccent,
+                  isDark ? Colors.white : Colors.black87,
                   isImageSection: true,
+                  isDark: isDark,
                 );
               },
               childCount: _imageItems.length,
@@ -438,56 +599,62 @@ class _YifengState extends State<Yifeng> {
     Color backgroundColor,
     Color textColor, {
     bool isImageSection = false,
+    bool isDark = false,
   }) {
-    return GestureDetector(
-      onTap: () {
-        if (page is Text) {
-          Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
-          return;
-        }
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
-      },
-      child: Card(
-        elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        color: backgroundColor,
-        child: Padding(
-          padding: const EdgeInsets.all(0.0),
+    final baseColor = isDark
+        ? Color(0xFF2C2C2C)
+        : Color.fromARGB(255, 252, 244, 244);
+
+    return Padding(
+      padding: EdgeInsets.all(6.0),
+      child: GestureDetector(
+        onTap: () {
+          if (page is Text) {
+            Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => page),
+          );
+        },
+        child: ClayContainer(
+          height: double.infinity,
+          width: double.infinity,
+          color: baseColor,
+          spread: 2,
+          depth: 20,
+          borderRadius: 16,
+          curveType: CurveType.concave,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Container(
-                height: isImageSection ? 80 : 100,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              ClayContainer(
+                height: isImageSection ? 45 : 60,
+                width: isImageSection ? 45 : 60,
+                depth: 80,
+                spread: 1,
+                borderRadius: isImageSection ? 23 : 30,
+                curveType: CurveType.convex,
+                color: baseColor,
                 child: Icon(
                   icon,
-                  size: isImageSection ? 45 : 50,
-                  color: widget.isDarkMode
-                      ? isImageSection
-                          ? Color.fromARGB(255, 175, 208, 219)
-                          : Color.fromARGB(255, 180, 158, 208)
-                      : textColor, // 根据模式设置图标颜色
+                  size: isImageSection ? 24 : 30,
+                  color: isDark
+                      ? Color(0xFFBB86FC)
+                      : Colors.deepPurpleAccent,
                 ),
               ),
-              Expanded(
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: isImageSection ? 15 : 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              SizedBox(height: 8),
+              Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: isImageSection ? 13 : 16,
+                  fontWeight: FontWeight.w500,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -671,11 +838,24 @@ class _YifengState extends State<Yifeng> {
   // 手动刷新天气数据
   Future<void> refreshWeatherData() async {
     if (isAllowFresh) {
+      setState(() {
+        isLoading = true; // 开始加载时设置状态
+        weatherData = null; // 清空现有数据，触发加载状态
+      });
       isAllowFresh = false;
-      Fluttertoast.showToast(msg: '正在刷新天气数据，请稍候');
-      await getLocationName(); // 获取位置名称
-      await Future.delayed(Duration(seconds: 60)); // 等待1分钟
-      isAllowFresh = true;
+
+      try {
+        await getLocationName(); // 获取位置名称
+      } catch (e) {
+        print('Error refreshing weather: $e');
+      } finally {
+        setState(() {
+          isLoading = false; // 无论成功失败都结束加载状态
+        });
+
+        await Future.delayed(Duration(seconds: 60)); // 等待1分钟
+        isAllowFresh = true;
+      }
     } else {
       Fluttertoast.showToast(msg: '请不要频繁刷新，请等待1分钟后再刷新');
     }
@@ -780,6 +960,11 @@ class _YifengState extends State<Yifeng> {
       'text': '历史上的今天',
       'icon': Icons.history,
       'page': TodayInHistoryPage(),
+    },
+    {
+      'text': '全球票房榜',
+      'icon': Icons.movie,
+      'page': GlobalBoxOfficePage(),
     },
     {
       'text': 'Bing 每日壁纸',

@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 // 微博页面部件
 class WeiboPage extends StatefulWidget {
-  late final Future<WeiboApiResponse> futureData;
+  Future<WeiboApiResponse> futureData;
 
   WeiboPage({required this.futureData});
 
@@ -57,25 +57,17 @@ class _WeiboPageState extends State<WeiboPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _searchOnBaidu(item.word),
-                    onLongPress: () =>
-                        _copyToClipboard('${index + 1}. ${item.word}'),
+                    onTap: () => _launchURL(item.link),
+                    onLongPress: () => _copyToClipboard('${index + 1}. ${item.title}'),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12.0),
-                      trailing: item.icon.isEmpty
-                          ? null
-                          : Image.network(
-                              item.icon,
-                              width: 35,
-                              height: 35,
-                            ),
                       title: Row(
                         children: [
                           Expanded(
                             child: Text(
-                              '${index + 1}. ${item.word}',
+                              '${index + 1}. ${item.title}',
                               style: const TextStyle(
-                                fontSize: 16, // 调整字体大小
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -83,7 +75,7 @@ class _WeiboPageState extends State<WeiboPage> {
                         ],
                       ),
                       subtitle: Text(
-                        '热度: ${item.num}',
+                        '热度: ${item.hotValue}',
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
@@ -101,8 +93,7 @@ class _WeiboPageState extends State<WeiboPage> {
   }
 
   // 跳转到百度搜索
-  void _searchOnBaidu(String query) async {
-    final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(query)}';
+  void _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -124,7 +115,7 @@ class _WeiboPageState extends State<WeiboPage> {
 
 // 微博 API 数据模型类
 Future<WeiboApiResponse> fetchWeiboData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/weibo'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/weibo'));
 
   if (response.statusCode == 200) {
     return WeiboApiResponse.fromJson(jsonDecode(response.body));
@@ -146,17 +137,21 @@ class WeiboApiResponse {
 }
 
 class WeiboItem {
-  final String word;
-  final String icon;
-  final int num;
+  final String title;
+  final int hotValue;
+  final String link;
 
-  WeiboItem({required this.word, required this.icon, required this.num});
+  WeiboItem({
+    required this.title,
+    required this.hotValue,
+    required this.link,
+  });
 
   factory WeiboItem.fromJson(Map<String, dynamic> json) {
     return WeiboItem(
-      word: json['word'] ?? '', // Default to empty string if null
-      icon: json['icon'] ?? '', // Default to empty string if null
-      num: json['num'] ?? 0, // Default to 0 if null
+      title: json['title'] ?? '',
+      hotValue: json['hot_value'] ?? 0,
+      link: json['link'] ?? '',
     );
   }
 }

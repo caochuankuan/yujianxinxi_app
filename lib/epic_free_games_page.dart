@@ -68,9 +68,7 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () {
-                      _launchURL(game.urlSlug);
-                    },
+                    onTap: () => _launchURL(game.link),
                     onLongPress: () {
                       _copyToClipboard(game.title);
                     },
@@ -100,6 +98,30 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
                                   style: const TextStyle(fontSize: 16),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4.0),
+                                Row(
+                                  children: [
+                                    Text(
+                                      game.isCurrentlyFree ? '当前免费' : '即将免费',
+                                      style: TextStyle(
+                                        color: game.isCurrentlyFree ? Colors.green : Colors.orange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8.0),
+                                    Text(
+                                      '原价: ${game.originalPrice}',
+                                      style: const TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '${game.freeStartTime} - ${game.freeEndTime}',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
                               ],
                             ),
@@ -141,7 +163,7 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
 
 // 获取 Epic 免费游戏数据
 Future<List<EpicGame>> fetchEpicFreeGames() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/epic'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/epic'));
 
   if (response.statusCode == 200) {
     final jsonResponse = jsonDecode(response.body);
@@ -157,24 +179,33 @@ class EpicGame {
   final String title;
   final String description;
   final String thumbnailUrl;
-  final String urlSlug;
+  final String link;
+  final bool isCurrentlyFree;
+  final String originalPrice;
+  final String freeStartTime;
+  final String freeEndTime;
 
   EpicGame({
     required this.title,
     required this.description,
     required this.thumbnailUrl,
-    required this.urlSlug,
+    required this.link,
+    required this.isCurrentlyFree,
+    required this.originalPrice,
+    required this.freeStartTime,
+    required this.freeEndTime,
   });
 
   factory EpicGame.fromJson(Map<String, dynamic> json) {
     return EpicGame(
-      title: json['title'] ?? '', // Default to empty string if null
-      description: json['description'] ?? '', // Default to empty string if null
-      thumbnailUrl: json['keyImages'].firstWhere(
-        (image) => image['type'] == 'Thumbnail',
-        orElse: () => {'url': ''},
-      )['url'] ?? '', // Default to empty string if null
-      urlSlug: json['urlSlug'] ?? '', // Default to empty string if null
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
+      thumbnailUrl: json['cover'] ?? '',
+      link: json['link'] ?? '',
+      isCurrentlyFree: json['is_free_now'] ?? false,
+      originalPrice: json['original_price_desc'] ?? '',
+      freeStartTime: json['free_start'] ?? '',
+      freeEndTime: json['free_end'] ?? '',
     );
   }
 }

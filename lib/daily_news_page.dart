@@ -136,33 +136,11 @@ class _DailyNewsPageState extends State<DailyNewsPage> {
                   data.tip.isEmpty ||
                   !RegExp(r'^[\u4e00-\u9fa5]').hasMatch(data.tip)) {
                 // 使用备用接口
-                return FutureBuilder<BingApiResponse>(
-                  future: fetchBingData(),
-                  builder: (context, bingSnapshot) {
-                    if (bingSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return Center(child: _buildLoadingIndicator());
-                    } else if (bingSnapshot.hasError) {
-                      return Center(
-                          child: Text('Error: ${bingSnapshot.error}'));
-                    } else if (!bingSnapshot.hasData) {
-                      return const Center(child: Text('No data found'));
-                    } else {
-                      final bingData = bingSnapshot.data!;
-                      return SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildCoverImage(bingData.imageUrl),
-                            _buildTipSection(
-                                '图：${bingData.title}\n信息：${bingData.mainText}'),
-                            const Divider(thickness: 2),
-                            _buildNewsSection(context, data.news),
-                          ],
-                        ),
-                      );
-                    }
-                  },
+                return Container(
+                  child: Text(
+                    '暂时无法获取新闻，请稍后重试',
+                    style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                  ),
                 );
               } else {
                 return SingleChildScrollView(
@@ -367,52 +345,36 @@ class DailyNewsApiResponse {
       required this.cover});
 
   factory DailyNewsApiResponse.fromJson(Map<String, dynamic> json) {
-    var newsList = List<String>.from(json['data']['news']);
-    return DailyNewsApiResponse(
-      news: newsList,
-      tip: json['data']['tip'],
-      url: json['data']['url'],
-      cover: json['data']['cover'],
-    );
-  }
-}
-
-// Bing 数据模型类
-class BingApiResponse {
-  final String imageUrl;
-  final String title;
-  final String mainText;
-
-  BingApiResponse(
-      {required this.imageUrl, required this.title, required this.mainText});
-
-  factory BingApiResponse.fromJson(Map<String, dynamic> json) {
-    return BingApiResponse(
-      imageUrl: json['data']['image_url'],
-      title: json['data']['title'],
-      mainText: json['data']['main_text'],
-    );
+    try {
+      final data = json['data'];
+      if (data == null) throw Exception('No data field in response');
+      
+      return DailyNewsApiResponse(
+        news: List<String>.from(data['news'] ?? []),
+        tip: data['tip'] ?? '',
+        url: data['url'] ?? '',
+        cover: data['cover'] ?? '',
+      );
+    } catch (e) {
+      print('Error parsing DailyNewsApiResponse: $e');
+      // 返回一个带有默认值的对象
+      return DailyNewsApiResponse(
+        news: ['暂时无法获取新闻，请稍后重试'],
+        tip: '数据加载失败',
+        url: '',
+        cover: '',
+      );
+    }
   }
 }
 
 // 获取每日新闻数据
 Future<DailyNewsApiResponse> fetchDailyNewsData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/60s?v2=1'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/60s'));
 
-  if (response.statusCode == 200) {
+  if (response.statusCode == 200) {    
     return DailyNewsApiResponse.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Failed to load daily news data');
-  }
-}
-
-// 使用备用接口获取数据
-Future<BingApiResponse> fetchBingData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/bing'));
-
-  if (response.statusCode == 200) {
-    return BingApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Bing data');
   }
 }

@@ -63,18 +63,28 @@ class _NewsPageState extends State<NewsPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _searchOnBaidu(item.title),
+                    onTap: () => _launchURL(item.link),
                     onLongPress: () => _copyToClipboard('${index + 1}. ${item.title}'),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12.0),
-                      leading: Icon(Icons.article, size: 50),
+                      leading: item.cover.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                item.cover,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(Icons.article, size: 50),
                       title: Row(
                         children: [
                           Expanded(
                             child: Text(
                               '${index + 1}. ${item.title}',
                               style: const TextStyle(
-                                fontSize: 16, // 调整字体大小
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -82,7 +92,7 @@ class _NewsPageState extends State<NewsPage> {
                         ],
                       ),
                       subtitle: Text(
-                        'Fake clicks: ${item.params.fakeClickCount}',
+                        '热度: ${item.hotValue}',
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
@@ -100,8 +110,7 @@ class _NewsPageState extends State<NewsPage> {
   }
 
   // 跳转到百度搜索
-  void _searchOnBaidu(String query) async {
-    final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(query)}';
+  void _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -123,7 +132,7 @@ class _NewsPageState extends State<NewsPage> {
 
 // 新闻 API 数据模型类
 Future<NewsApiResponse> fetchNewsData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/toutiao'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/toutiao'));
 
   if (response.statusCode == 200) {
     return NewsApiResponse.fromJson(jsonDecode(response.body));
@@ -146,14 +155,23 @@ class NewsApiResponse {
 
 class NewsItem {
   final String title;
-  final NewsParams params;
+  final int hotValue;
+  final String cover;
+  final String link;
 
-  NewsItem({required this.title, required this.params});
+  NewsItem({
+    required this.title,
+    required this.hotValue,
+    required this.cover,
+    required this.link,
+  });
 
   factory NewsItem.fromJson(Map<String, dynamic> json) {
     return NewsItem(
-      title: json['word'] ?? '',  // Default to empty string if null
-      params: NewsParams.fromJson(json['params']),
+      title: json['title'] ?? '',
+      hotValue: json['hot_value'] ?? 0,
+      cover: json['cover'] ?? '',
+      link: json['link'] ?? '',
     );
   }
 }

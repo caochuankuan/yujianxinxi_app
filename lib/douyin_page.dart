@@ -63,7 +63,7 @@ class _DouyinPageState extends State<DouyinPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _searchOnBaidu(item.title),
+                    onTap: () => _launchURL(item.link),  // 改为打开抖音链接
                     onLongPress: () => _copyToClipboard('${index + 1}. ${item.title}'),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12.0),
@@ -109,9 +109,8 @@ class _DouyinPageState extends State<DouyinPage> {
     );
   }
 
-  // 跳转到百度搜索
-  void _searchOnBaidu(String query) async {
-    final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(query)}';
+  // 跳转到链接
+  void _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -133,7 +132,7 @@ class _DouyinPageState extends State<DouyinPage> {
 
 // 抖音 API 数据模型类
 Future<DouyinApiResponse> fetchDouyinData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/douyin'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/douyin'));
 
   if (response.statusCode == 200) {
     return DouyinApiResponse.fromJson(jsonDecode(response.body));
@@ -155,17 +154,24 @@ class DouyinApiResponse {
 }
 
 class DouyinItem {
-  final String coverUrl;
   final String title;
   final int hotValue;
+  final String coverUrl;
+  final String link;  // 添加 link 字段
 
-  DouyinItem({required this.coverUrl, required this.title, required this.hotValue});
+  DouyinItem({
+    required this.title,
+    required this.hotValue,
+    required this.coverUrl,
+    required this.link,  // 添加 link 参数
+  });
 
   factory DouyinItem.fromJson(Map<String, dynamic> json) {
     return DouyinItem(
-      coverUrl: json['cover'] ?? '', // Default to empty string if null
-      title: json['word'] ?? '',    // Default to empty string if null
-      hotValue: json['hot_value'] ?? 0, // Default to 0 if null
+      title: json['title'] ?? '',
+      hotValue: json['hot_value'] ?? 0,
+      coverUrl: json['cover'] ?? '',
+      link: json['link'] ?? '',  // 解析 link 字段
     );
   }
 }

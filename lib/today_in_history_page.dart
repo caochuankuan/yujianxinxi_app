@@ -118,7 +118,7 @@ class _TodayInHistoryPageState extends State<TodayInHistoryPage> {
 
 // 获取历史上的今天数据
 Future<TodayInHistoryApiResponse> fetchTodayInHistoryData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/today_in_history'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/today_in_history'));
 
   if (response.statusCode == 200) {
     return TodayInHistoryApiResponse.fromJson(jsonDecode(response.body));
@@ -134,7 +134,7 @@ class TodayInHistoryApiResponse {
   TodayInHistoryApiResponse({required this.events});
 
   factory TodayInHistoryApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
+    var list = json['data']['items'] as List;  // 修改这里，因为事件数据在 data.items 中
     List<HistoryEvent> eventsList = list.map((i) => HistoryEvent.fromJson(i)).toList();
     return TodayInHistoryApiResponse(events: eventsList);
   }
@@ -151,10 +151,10 @@ class HistoryEvent {
 
   factory HistoryEvent.fromJson(Map<String, dynamic> json) {
     return HistoryEvent(
-      title: json['title'] ?? '', // Default to empty string if null
-      year: json['year'] ?? '',   // Default to empty string if null
-      desc: json['desc'] ?? '',   // Default to empty string if null
-      link: json['link'] ?? '',   // Default to empty string if null
+      title: json['title'] ?? '',
+      year: json['year'] ?? '',
+      desc: json['description'] ?? '',  // API 返回的是 description
+      link: json['link'] ?? '',
     );
   }
 }

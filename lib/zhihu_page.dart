@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 // 知乎页面部件
 class ZhihuPage extends StatefulWidget {
-  late final Future<ZhihuApiResponse> futureData;
+  Future<ZhihuApiResponse> futureData;
 
   ZhihuPage({required this.futureData});
 
@@ -54,23 +54,44 @@ class _ZhihuPageState extends State<ZhihuPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _searchOnBaidu(item.displayQuery),
-                    onLongPress: () => _copyToClipboard('${index + 1}. ${item.displayQuery}'),
+                    onTap: () => _searchOnBaidu(item.title),
+                    onLongPress: () => _copyToClipboard('${index + 1}. ${item.title}'),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12.0),
-                      leading: const Icon(
-                        Icons.question_answer,
-                        size: 50,
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${index + 1}. ${item.displayQuery}',
-                              style: const TextStyle(
-                                fontSize: 16, // 调整字体大小
-                                fontWeight: FontWeight.bold,
+                      leading: item.cover.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                item.cover,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
                               ),
+                            )
+                          : const Icon(Icons.question_answer, size: 50),
+                      title: Text(
+                        '${index + 1}. ${item.title}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Text(
+                            item.hotValueDesc,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            '${item.answerCount} 回答 · ${item.followerCount} 关注',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -110,7 +131,7 @@ class _ZhihuPageState extends State<ZhihuPage> {
 
 // 知乎 API 数据模型类
 Future<ZhihuApiResponse> fetchZhihuData() async {
-  final response = await http.get(Uri.parse('https://60s.viki.moe/zhihu'));
+  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/zhihu'));
 
   if (response.statusCode == 200) {
     return ZhihuApiResponse.fromJson(jsonDecode(response.body));
@@ -132,13 +153,33 @@ class ZhihuApiResponse {
 }
 
 class ZhihuItem {
-  final String displayQuery;
+  final String title;
+  final String detail;
+  final String cover;
+  final String hotValueDesc;
+  final int answerCount;
+  final int followerCount;
+  final String link;
 
-  ZhihuItem({required this.displayQuery});
+  ZhihuItem({
+    required this.title,
+    required this.detail,
+    required this.cover,
+    required this.hotValueDesc,
+    required this.answerCount,
+    required this.followerCount,
+    required this.link,
+  });
 
   factory ZhihuItem.fromJson(Map<String, dynamic> json) {
     return ZhihuItem(
-      displayQuery: json['display_query'] ?? '', // Default to empty string if null
+      title: json['title'] ?? '',
+      detail: json['detail'] ?? '',
+      cover: json['cover'] ?? '',
+      hotValueDesc: json['hot_value_desc'] ?? '',
+      answerCount: json['answer_cnt'] ?? 0,
+      followerCount: json['follower_cnt'] ?? 0,
+      link: json['link'] ?? '',
     );
   }
 }
