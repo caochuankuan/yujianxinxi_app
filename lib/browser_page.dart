@@ -9,7 +9,14 @@ import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 
 class BrowserPage extends StatefulWidget {
-  const BrowserPage({super.key});
+  final String url;
+  final bool isShowAppBar;
+  
+  const BrowserPage({
+    super.key,
+    this.url = "https://www.baidu.com",
+    this.isShowAppBar = true
+  });
 
   @override
   _BrowserPageState createState() => _BrowserPageState();
@@ -74,7 +81,7 @@ class _BrowserPageState extends State<BrowserPage>
       )
       // 添加以下配置以允许混合内容
       ..enableZoom(true)
-      ..loadRequest(Uri.parse('https://www.baidu.com'));
+      ..loadRequest(Uri.parse(widget.url));
   }
 
   Future<void> _loadBookmarks() async {
@@ -302,7 +309,7 @@ class _BrowserPageState extends State<BrowserPage>
   Widget build(BuildContext context) {
     return WillPopScope(
       child: Scaffold(
-        appBar: AppBar(
+        appBar: widget.isShowAppBar ? AppBar(
           // titleSpacing: 0.0, // 将标题间距设为0
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -360,7 +367,7 @@ class _BrowserPageState extends State<BrowserPage>
           ),
           // 使用空的title，因为我们已经在flexibleSpace中自定义了布局
           title: const SizedBox.shrink(),
-        ),
+        ) : null,
         body: Stack(
           children: [
             Column(

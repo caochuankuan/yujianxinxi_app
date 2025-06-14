@@ -1630,9 +1630,9 @@ void showSpotlightSearchDialog(BuildContext context) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => WebViewer(
+                                      builder: (context) => BrowserPage(
                                         isShowAppBar: true,
-                                        initialUrl: url,
+                                        url: url,
                                       ),
                                     ),
                                   );
