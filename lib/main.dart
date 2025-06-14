@@ -740,294 +740,296 @@ class _YifengState extends State<Yifeng> {
     // 这里只是简单示例，实际可自定义
     if (index == 0) {
       // 原有 CustomScrollView
-      return CustomScrollView(
-        slivers: <Widget>[
-          // 天气组件
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8.0),
-              child: LiquidGlass(
-                tint: isDark ? Colors.black : Colors.white,
-                isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      isLoading
-                          ? Container(
-                              decoration: BoxDecoration(),
-                              height: 180,
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          : weatherData == null
-                              ? Container(
-                                  decoration: BoxDecoration(),
-                                    height: 180, // 设置与有数据时相近的高度
-                                    child: const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                              : Row(
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            SizedBox(
-                                              width: MediaQuery.of(context)
-                                                      .size
-                                                      .width *
-                                                  0.62,
-                                              child: Text(
-                                                location, // 显示城市名称
-                                                maxLines: 2, // 限制最多显示两行
-                                                overflow: TextOverflow
-                                                    .ellipsis, // 超出部分显示省略号
+      return BackdropGroup(
+        child: CustomScrollView(
+          slivers: <Widget>[
+            // 天气组件
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8.0),
+                child: LiquidGlass(
+                  tint: isDark ? Colors.black : Colors.white,
+                  isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        isLoading
+                            ? Container(
+                                decoration: BoxDecoration(),
+                                height: 180,
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            : weatherData == null
+                                ? Container(
+                                    decoration: BoxDecoration(),
+                                      height: 180, // 设置与有数据时相近的高度
+                                      child: const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                : Row(
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: MediaQuery.of(context)
+                                                        .size
+                                                        .width *
+                                                    0.62,
+                                                child: Text(
+                                                  location, // 显示城市名称
+                                                  maxLines: 2, // 限制最多显示两行
+                                                  overflow: TextOverflow
+                                                      .ellipsis, // 超出部分显示省略号
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Theme.of(context)
+                                                                .brightness ==
+                                                            Brightness.dark
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: refreshWeatherData,
+                                                icon: isLoading
+                                                    ? SizedBox(
+                                                        width: 24,
+                                                        height: 24,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          valueColor:
+                                                              AlwaysStoppedAnimation<
+                                                                  Color>(widget
+                                                                      .isDarkMode
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black87),
+                                                        ),
+                                                      )
+                                                    : const Icon(Icons.refresh),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                0.7,
+                                            child: Text(
+                                              weatherData!['hourly']
+                                                  ['description'],
+                                            ),
+                                          ),
+                                          Text(
+                                            '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Theme.of(context).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                          Text(
+                                            '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Theme.of(context).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Theme.of(context).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Theme.of(context).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color:
+                                                  Theme.of(context).brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      // Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            children: [
+                                              SizedBox(
+                                                height: 30,
+                                              ),
+                                              getWeatherIcon(
+                                                  weatherData!['hourly']
+                                                      ['cloudrate'][0]['value']),
+                                              Text(
+                                                '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
                                                 style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 10,
                                                   color: Theme.of(context)
                                                               .brightness ==
                                                           Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.black,
+                                                      ? Colors.grey[300]
+                                                      : Colors.black87,
                                                 ),
+                                                textAlign: TextAlign.center,
                                               ),
-                                            ),
-                                            IconButton(
-                                              onPressed: refreshWeatherData,
-                                              icon: isLoading
-                                                  ? SizedBox(
-                                                      width: 24,
-                                                      height: 24,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        valueColor:
-                                                            AlwaysStoppedAnimation<
-                                                                Color>(widget
-                                                                    .isDarkMode
-                                                                ? Colors.white
-                                                                : Colors
-                                                                    .black87),
-                                                      ),
-                                                    )
-                                                  : const Icon(Icons.refresh),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.7,
-                                          child: Text(
-                                            weatherData!['hourly']
-                                                ['description'],
+                                            ],
                                           ),
-                                        ),
-                                        Text(
-                                          '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                          ),
-                                        ),
-                                        Text(
-                                          '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    // Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Column(
-                                          children: [
-                                            SizedBox(
-                                              height: 30,
-                                            ),
-                                            getWeatherIcon(
-                                                weatherData!['hourly']
-                                                    ['cloudrate'][0]['value']),
-                                            Text(
-                                              '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Theme.of(context)
-                                                            .brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.black87,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                )
-                    ],
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          // 主功能组件
-          SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 1.2,
-            ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final item = _listItems[index];
-                // final baseColor =
-                //     isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
+            // 主功能组件
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.2,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final item = _listItems[index];
+                  // final baseColor =
+                  //     isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
 
-                return Padding(
-                  padding: EdgeInsets.all(4.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (item['page'] is Text) {
-                        Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
-                        return;
-                      }
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => item['page']),
-                      );
-                    },
-                    child: LiquidGlass(
-                      tint: isDark ? Colors.black : Colors.white,
-                      isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
-                      child: Container(
-                        padding: EdgeInsets.all(8),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            ClayContainer(
-                              height: 50,
-                              width: 50,
-                              depth: 80,
-                              spread: 0,
-                              borderRadius: 35,
-                              curveType: CurveType.convex,
-                              color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : isDark ? const Color.fromARGB(255, 51, 44, 22) : Color.fromARGB(11, 204, 253, 204),
-                              child: Icon(
-                                item['icon'],
-                                size: 32,
-                                // color: isDark
-                                //     ? Color.fromARGB(255, 230, 225, 236)
-                                //     : const Color.fromARGB(255, 99, 98, 102),
+                  return Padding(
+                    padding: EdgeInsets.all(4.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (item['page'] is Text) {
+                          Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => item['page']),
+                        );
+                      },
+                      child: LiquidGlass(
+                        tint: isDark ? Colors.black : Colors.white,
+                        isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              ClayContainer(
+                                height: 50,
+                                width: 50,
+                                depth: 80,
+                                spread: 0,
+                                borderRadius: 35,
+                                curveType: CurveType.convex,
+                                color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : isDark ? const Color.fromARGB(255, 51, 44, 22) : Color.fromARGB(11, 204, 253, 204),
+                                child: Icon(
+                                  item['icon'],
+                                  size: 32,
+                                  // color: isDark
+                                  //     ? Color.fromARGB(255, 230, 225, 236)
+                                  //     : const Color.fromARGB(255, 99, 98, 102),
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              item['text'],
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : Colors.black87,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
+                              SizedBox(height: 16),
+                              Text(
+                                item['text'],
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white
+                                      : Colors.black87,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-              childCount: _listItems.length,
+                  );
+                },
+                childCount: _listItems.length,
+              ),
             ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          // 次功能组件
-          SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              childAspectRatio: 1,
+            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            // 次功能组件
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+                childAspectRatio: 1,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final item = _imageItems[index];
+                  return _buildCard(
+                    context,
+                    item['text']!,
+                    item['icon']!,
+                    item['page']!,
+                    isDark ? Colors.grey[700]! : Colors.orangeAccent,
+                    isDark ? Colors.white : Colors.black87,
+                    isImageSection: true,
+                    isDark: isDark,
+                  );
+                },
+                childCount: _imageItems.length,
+              ),
             ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final item = _imageItems[index];
-                return _buildCard(
-                  context,
-                  item['text']!,
-                  item['icon']!,
-                  item['page']!,
-                  isDark ? Colors.grey[700]! : Colors.orangeAccent,
-                  isDark ? Colors.white : Colors.black87,
-                  isImageSection: true,
-                  isDark: isDark,
-                );
-              },
-              childCount: _imageItems.length,
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
-        ],
+            const SliverToBoxAdapter(child: SizedBox(height: 120)),
+          ],
+        )
       );
     } else if (index == 1) {
       // 展示主功能区
@@ -1583,74 +1585,76 @@ void showSpotlightSearchDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     builder: (context) {
-      return Center(
-        child: Material(
-          color: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-              child: Container(
-                width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.92,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.85),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 32,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.search, color: Colors.black54),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            autofocus: true,
-                            decoration: const InputDecoration(
-                              hintText: '搜索…',
-                              border: InputBorder.none,
-                              isDense: true,
-                            ),
-                            style: const TextStyle(fontSize: 20),
-                            onSubmitted: (value) async {
-                              Navigator.of(context).pop();
-                              if (value.trim().isNotEmpty) {
-                                final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(value)}';
-                                if (await canLaunchUrl(Uri.parse(url))) {
-                                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BrowserPage(
-                                        isShowAppBar: true,
-                                        url: url,
+      return BackdropGroup(
+        child: Center(
+          child: Material(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter.grouped(
+                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                child: Container(
+                  width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.92,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.85),
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 32,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.search, color: Colors.black54),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              autofocus: true,
+                              decoration: const InputDecoration(
+                                hintText: '搜索…',
+                                border: InputBorder.none,
+                                isDense: true,
+                              ),
+                              style: const TextStyle(fontSize: 20),
+                              onSubmitted: (value) async {
+                                Navigator.of(context).pop();
+                                if (value.trim().isNotEmpty) {
+                                  final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(value)}';
+                                  if (await canLaunchUrl(Uri.parse(url))) {
+                                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => BrowserPage(
+                                          isShowAppBar: true,
+                                          url: url,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  }
                                 }
-                              }
-                            },
+                              },
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.black38),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    ),
-                    // const SizedBox(height: 16),
-                    // 可扩展：搜索建议、历史、热词等
-                    // const Text('搜索历史/建议区域', style: TextStyle(color: Colors.black45)),
-                  ],
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.black38),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                      // const SizedBox(height: 16),
+                      // 可扩展：搜索建议、历史、热词等
+                      // const Text('搜索历史/建议区域', style: TextStyle(color: Colors.black45)),
+                    ],
+                  ),
                 ),
               ),
             ),

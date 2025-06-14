@@ -28,7 +28,8 @@ class LiquidGlassBottomNavBar extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: isBlurEnabled
-                ? BackdropFilter(
+                ? BackdropGroup(
+                  child: BackdropFilter.grouped(
                     filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -60,7 +61,8 @@ class LiquidGlassBottomNavBar extends StatelessWidget {
                         ],
                       ),
                     ),
-                  )
+                  ),
+                )
                 : Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
@@ -100,7 +102,8 @@ class LiquidGlassBottomNavBar extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
               child: isBlurEnabled
-                  ? BackdropFilter(
+                  ? BackdropGroup(
+                    child: BackdropFilter.grouped(
                       filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -129,7 +132,8 @@ class LiquidGlassBottomNavBar extends StatelessWidget {
                           size: 40,
                         ),
                       ),
-                    )
+                    ),
+                  )
                   : Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 16),

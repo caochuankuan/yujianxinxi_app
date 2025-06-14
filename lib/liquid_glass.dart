@@ -24,7 +24,7 @@ class LiquidGlass extends StatelessWidget {
     return ClipRRect(
       borderRadius: borderRadius,
       child: isBlurEnabled
-          ? BackdropFilter(
+          ? BackdropFilter.grouped(
               filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
               child: Container(
                 decoration: BoxDecoration(
