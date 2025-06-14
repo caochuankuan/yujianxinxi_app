@@ -32,8 +32,10 @@ import 'package:quick_actions/quick_actions.dart';
 import 'package:yifeng_site/browser_page.dart';
 import 'package:device_preview_screenshot/device_preview_screenshot.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'liquid_glass_bottom_nav_bar.dart';
 import 'dart:ui';
+import 'dart:io';
 
 // 主程序入口
 void main() {
@@ -253,7 +255,7 @@ class _YifengState extends State<Yifeng> {
   var location = '位置获取失败';
 
   // 背景设置相关
-  String? _bgType; // 'asset' | 'network' | 'color' | 'gradient'
+  String? _bgType; // 'asset' | 'network' | 'color' | 'gradient' | 'local_file'
   String? _bgValue; // 路径/URL/颜色值字符串
 
   int _selectedIndex = 0;
@@ -325,6 +327,17 @@ class _YifengState extends State<Yifeng> {
           colors: [c1, c2],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+        ),
+      );
+    } else if (_bgType == 'local_file') {
+      bgDecoration = BoxDecoration(
+        image: DecorationImage(
+          image: FileImage(File(_bgValue ?? '')),
+          fit: BoxFit.cover,
+          onError: (e, s) {
+            Fluttertoast.showToast(msg: '本地图片加载失败，已切换为默认背景');
+            _saveBgSetting('asset', 'assets/images/1.jpg');
+          },
         ),
       );
     } else {
@@ -493,6 +506,28 @@ class _YifengState extends State<Yifeng> {
                                           },
                                         ),
                                       ),
+                                    const SizedBox(height: 16),
+                                    // 本地选择图片按钮
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              icon: const Icon(Icons.photo_library),
+                                              label: const Text('本地选择图片'),
+                                              onPressed: () async {
+                                                final ImagePicker picker = ImagePicker();
+                                                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                                                if (image != null) {
+                                                  Navigator.pop(context, {'type': 'local_file', 'value': image.path});
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     const SizedBox(height: 16),
                                     // 纯色选择
                                     Padding(
