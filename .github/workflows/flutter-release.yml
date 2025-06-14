@@ -54,17 +54,29 @@ jobs:
         run: ls -l build/app/outputs/flutter-apk/
 
       # 7. 上传 version.json 和所有 APK 到服务器
-      - name: Upload APK and version.json to server
+      # 上传 version.json
+      - name: Upload version.json to server
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: |
-            version.json
-            build/app/outputs/flutter-apk/app-release.apk
+          source: version.json
           target: /www/wwwroot/yujianyifeng/appupdate/
+          debug: true
+
+      # 上传 APK
+      - name: Upload APK to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: build/app/outputs/flutter-apk/app-release.apk
+          target: /www/wwwroot/yujianyifeng/appupdate/
+          debug: true
 
       # 8. 创建 GitHub Release
       - name: Create GitHub Release
