@@ -59,3 +59,26 @@ jobs:
             build/app/outputs/flutter-apk/app-release-arm64.apk
             build/app/outputs/flutter-apk/app-release-x86.apk
             build/app/outputs/flutter-apk/app-release-x64.apk
+
+      # 8. 生成 version.json
+      - name: Generate version.json
+        run: |
+          echo '{
+            "version": "${{ github.event.inputs.tag_name }}",
+            "build_number": 1,
+            "apk_url": "http://chuankuan.com.cn/appupdate/app-release.apk",
+            "changelog": "自动构建上传"
+          }' > version.json
+
+      # 9. 上传 version.json 和所有 APK 到服务器
+      - name: Upload APK and version.json to server
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: |
+            version.json
+            build/app/outputs/flutter-apk/app-release.apk
+          target: /www/wwwroot/yujianyifeng/appupdate/
