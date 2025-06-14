@@ -49,11 +49,6 @@ jobs:
           echo '  "apk_url": "http://chuankuan.com.cn/appupdate/app-release.apk",' >> version.json
           echo '  "changelog": "自动构建上传"' >> version.json
           echo '}' >> version.json
-          
-      - name: Debug: Check generated files
-        run: |
-          ls -lh version.json
-          ls -lh build/app/outputs/flutter-apk/
 
       # 7. 上传 version.json 和所有 APK 到服务器
       - name: Upload APK and version.json to server
