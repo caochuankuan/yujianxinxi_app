@@ -118,7 +118,7 @@ class _GlobalBoxOfficePageState extends State<GlobalBoxOfficePage> {
 
     try {
       final response = await http.get(Uri.parse(
-          'https://piaofang.maoyan.com/i/api/rank/globalBox/historyRankList?WuKongReady=h5'));
+          'https://piaofang.maoyan.com/i/globalBox/historyRank'));
 
       if (response.statusCode == 200) {
         setState(() {
