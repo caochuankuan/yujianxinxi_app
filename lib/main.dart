@@ -1540,7 +1540,10 @@ class _YifengState extends State<Yifeng> {
     {
       'text': '全球票房榜',
       'icon': Icons.movie,
-      'page': GlobalBoxOfficePage(),
+      // 'page': GlobalBoxOfficePage(),
+      'page': BrowserPage(
+        url: 'https://piaofang.maoyan.com/i/globalBox/historyRank',
+      ),
     },
     {
       'text': 'Bing 每日壁纸',
