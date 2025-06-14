@@ -3,8 +3,13 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class WebViewer extends StatefulWidget {
   final String initialUrl;
+  final bool isShowAppBar;
 
-  const WebViewer({super.key, required this.initialUrl});
+  const WebViewer({
+    super.key, 
+    required this.initialUrl,
+    required this.isShowAppBar
+  });
 
   @override
   _WebViewerState createState() => _WebViewerState();
@@ -49,7 +54,7 @@ class _WebViewerState extends State<WebViewer> {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
-        appBar: AppBar(
+        appBar: widget.isShowAppBar ? AppBar(
           title: const Text('遇见资讯'),
           centerTitle: true,
           leading: IconButton(
@@ -62,7 +67,7 @@ class _WebViewerState extends State<WebViewer> {
               }
             },
           ),
-        ),
+        ) : null,
         body: Stack(
           children: [
             WebViewWidget(controller: _controller),

@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:liquid_glass/liquid_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lunar/lunar.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ import 'package:yifeng_site/bing_wallpaper_page.dart';
 import 'package:yifeng_site/daily_news_page.dart';
 import 'package:yifeng_site/epic_free_games_page.dart';
 import 'package:yifeng_site/global_box_office_page.dart';
+import 'package:yifeng_site/liquid_glass.dart';
 import 'package:yifeng_site/mingxing_bagua.dart';
 import 'package:yifeng_site/moyu_rili.dart';
 import 'package:yifeng_site/moyuribao_page.dart';
@@ -32,6 +32,8 @@ import 'package:quick_actions/quick_actions.dart';
 import 'package:yifeng_site/browser_page.dart';
 import 'package:device_preview_screenshot/device_preview_screenshot.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'liquid_glass_bottom_nav_bar.dart';
+import 'dart:ui';
 
 // 主程序入口
 void main() {
@@ -51,10 +53,13 @@ class _MyAppState extends State<MyApp> {
   bool useDevicePreview = false; // 设备预览开关
   String shortcut = 'no action set';
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  bool isBlurEnabled = false; // 是否启用高斯模糊
 
   @override
   void initState() {
     super.initState();
+    
+    _loadSettings(); // 加载设置
 
     const QuickActions quickActions = QuickActions();
     quickActions.initialize((String shortcutType) {
@@ -95,6 +100,14 @@ class _MyAppState extends State<MyApp> {
           shortcut = 'actions ready';
         }
       });
+    });
+  }
+
+  // 加载设置
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isBlurEnabled = prefs.getBool('isBlurEnabled') ?? false;
     });
   }
 
@@ -158,6 +171,8 @@ class _MyAppState extends State<MyApp> {
         useDevicePreview: useDevicePreview,
         toggleTheme: _toggleTheme,
         toggleDevicePreview: _toggleDevicePreview, // 传递切换方法
+        isBlurEnabled: isBlurEnabled, // 传递高斯模糊状态
+        toggleBlur: _toggleBlur, // 传递切换高斯模糊的方法
       ),
     );
 
@@ -199,6 +214,15 @@ class _MyAppState extends State<MyApp> {
       _isDarkMode = !_isDarkMode;
     });
   }
+
+  // 切换高斯模糊的方法
+  void _toggleBlur() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isBlurEnabled = !isBlurEnabled;
+    });
+    await prefs.setBool('isBlurEnabled', isBlurEnabled);
+  }
 }
 
 class Yifeng extends StatefulWidget {
@@ -206,12 +230,16 @@ class Yifeng extends StatefulWidget {
   final bool useDevicePreview;
   late final VoidCallback toggleTheme;
   late final VoidCallback toggleDevicePreview;
+  final bool isBlurEnabled; // 新增：接收高斯模糊状态
+  final VoidCallback toggleBlur; // 新增：接收切换高斯模糊的方法
 
   Yifeng({
     required this.isDarkMode,
     required this.toggleTheme,
     required this.useDevicePreview,
     required this.toggleDevicePreview,
+    required this.isBlurEnabled, // 初始化
+    required this.toggleBlur, // 初始化
   });
 
   @override
@@ -227,6 +255,8 @@ class _YifengState extends State<Yifeng> {
   // 背景设置相关
   String? _bgType; // 'asset' | 'network' | 'color' | 'gradient'
   String? _bgValue; // 路径/URL/颜色值字符串
+
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -308,612 +338,761 @@ class _YifengState extends State<Yifeng> {
 
     return Container(
       decoration: bgDecoration,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          title: const Text('遇见信息'),
-          centerTitle: true,
-          elevation: 0,
-          leading: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.info_outline),
-                onPressed: () {
-                  showAboutDialog(
-                    context: context,
-                    applicationName: '遇见信息',
-                    applicationVersion: '1.0.1',
-                    applicationIcon: const Image(
-                      image: AssetImage('assets/icon/app.png'),
-                      width: 50,
-                      height: 50,
-                    ),
-                    children: [
-                      Text('作者：于逸风'),
-                      Text('联系方式：2835082172@qq.com'),
-                      Text('GitHub：https://github.com/caochuankuan/'),
-                    ],
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.web),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WebViewer(
-                        initialUrl: 'http://news.chuankuan.com.cn',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          leadingWidth: 96, // 调整leading宽度以适应两个按钮
-          actions: [
-            IconButton(
-              icon: Icon(widget.useDevicePreview
-                  ? Icons.devices
-                  : Icons.devices_outlined),
-              onPressed: widget.toggleDevicePreview, // 使用传入的方法
-            ),
-            IconButton(
-              icon: Icon(isDark
-                  ? Icons.wb_sunny_outlined
-                  : Icons.nightlight_round),
-              onPressed: widget.toggleTheme,
-            ),
-            IconButton(
-              icon: const Icon(Icons.image),
-              tooltip: '背景设置',
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              title: const Text('遇见信息'),
+              centerTitle: true,
+              elevation: 0,
+              leading: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () {
+                      showAboutDialog(
+                        context: context,
+                        applicationName: '遇见信息',
+                        applicationVersion: '1.0.1',
+                        applicationIcon: const Image(
+                          image: AssetImage('assets/icon/app.png'),
+                          width: 50,
+                          height: 50,
+                        ),
+                        children: [
+                          Text('作者：于逸风'),
+                          Text('联系方式：2835082172@qq.com'),
+                          Text('GitHub：https://github.com/caochuankuan/'),
+                        ],
+                      );
+                    },
                   ),
-                  builder: (context) {
-                    String urlInput = '';
-                    Color customColor = Colors.blue;
-                    Color gradientStart = Colors.blue;
-                    Color gradientEnd = Colors.purple;
-                    return StatefulBuilder(
-                      builder: (context, setModalState) {
-                        return Padding(
-                          padding: MediaQuery.of(context).viewInsets,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const SizedBox(height: 12),
-                                const Text('选择背景', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 12),
-                                // 预设图片
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: List.generate(5, (i) {
-                                      final imgPath = 'assets/images/${i+1}.jpg';
-                                      return GestureDetector(
-                                        onTap: () {
-                                          Navigator.pop(context, {'type': 'asset', 'value': imgPath});
-                                        },
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
-                                          child: Image.asset(
-                                            imgPath,
-                                            width: 56,
-                                            height: 56,
-                                            fit: BoxFit.cover,
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                // 网络图片
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          decoration: const InputDecoration(
-                                            labelText: '输入图片URL',
-                                            border: OutlineInputBorder(),
-                                          ),
-                                          onChanged: (v) {
-                                            setModalState(() { urlInput = v; });
-                                          },
-                                        ),
+                  IconButton(
+                    icon: const Icon(Icons.web),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WebViewer(
+                            isShowAppBar: true,
+                            initialUrl: 'http://news.chuankuan.com.cn',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              leadingWidth: 96, // 调整leading宽度以适应两个按钮
+              actions: [
+                IconButton(
+                  icon: Icon(widget.useDevicePreview
+                      ? Icons.devices
+                      : Icons.devices_outlined),
+                  onPressed: widget.toggleDevicePreview, // 使用传入的方法
+                ),
+                IconButton(
+                  icon: Icon(isDark
+                      ? Icons.wb_sunny_outlined
+                      : Icons.nightlight_round),
+                  onPressed: widget.toggleTheme,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.image),
+                  tooltip: '背景设置',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      builder: (context) {
+                        String urlInput = '';
+                        Color customColor = Colors.blue;
+                        Color gradientStart = Colors.blue;
+                        Color gradientEnd = Colors.purple;
+                        // 使用 StateSetter 来更新 ModalBottomSheet 内部的状态
+                        bool _currentBlurEnabled = widget.isBlurEnabled;
+                        return StatefulBuilder(
+                          builder: (context, setModalState) {
+                            return Padding(
+                              padding: MediaQuery.of(context).viewInsets,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const SizedBox(height: 12),
+                                    const Text('选择背景', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                    const SizedBox(height: 12),
+                                    // 预设图片
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: List.generate(5, (i) {
+                                          final imgPath = 'assets/images/${i+1}.jpg';
+                                          return GestureDetector(
+                                            onTap: () {
+                                              Navigator.pop(context, {'type': 'asset', 'value': imgPath});
+                                            },
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image.asset(
+                                                imgPath,
+                                                width: 56,
+                                                height: 56,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          );
+                                        }),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.check),
-                                        onPressed: urlInput.trim().isNotEmpty
-                                            ? () {
-                                                Navigator.pop(context, {'type': 'network', 'value': urlInput.trim()});
-                                              }
-                                            : null,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (urlInput.trim().isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Image.network(
-                                      urlInput,
-                                      width: 80,
-                                      height: 80,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (c, e, s) {
-                                        Fluttertoast.showToast(msg: '图片加载失败');
-                                        return const Icon(Icons.broken_image);
-                                      },
                                     ),
-                                  ),
-                                const SizedBox(height: 16),
-                                // 纯色选择
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Colors.white, Colors.black, Colors.blue, Colors.green, Colors.pink, Colors.orange
-                                    ].map((color) => GestureDetector(
-                                      onTap: () {
-                                        Navigator.pop(context, {'type': 'color', 'value': color.value.toString()});
-                                      },
-                                      child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                          color: color,
-                                          border: Border.all(width: 2, color: Colors.grey.shade300),
-                                          borderRadius: BorderRadius.circular(18),
-                                        ),
-                                      ),
-                                    )).toList(),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                // 自定义纯色按钮
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          icon: const Icon(Icons.palette),
-                                          label: const Text('自定义纯色'),
-                                          onPressed: () async {
-                                            await showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('选择颜色'),
-                                                  content: SingleChildScrollView(
-                                                    child: ColorPicker(
-                                                      pickerColor: customColor,
-                                                      onColorChanged: (color) {
-                                                        setModalState(() { customColor = color; });
-                                                      },
-                                                      enableAlpha: false,
-                                                      showLabel: true,
-                                                      pickerAreaHeightPercent: 0.7,
-                                                    ),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      child: const Text('取消'),
-                                                      onPressed: () => Navigator.of(context).pop(),
-                                                    ),
-                                                    TextButton(
-                                                      child: const Text('确定'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pop(context, {'type': 'color', 'value': customColor.value.toString()});
-                                                      },
-                                                    ),
-                                                  ],
-                                                );
+                                    const SizedBox(height: 16),
+                                    // 网络图片
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextField(
+                                              decoration: const InputDecoration(
+                                                labelText: '输入图片URL',
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              onChanged: (v) {
+                                                setModalState(() { urlInput = v; });
                                               },
-                                            );
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.check),
+                                            onPressed: urlInput.trim().isNotEmpty
+                                                ? () {
+                                                    Navigator.pop(context, {'type': 'network', 'value': urlInput.trim()});
+                                                  }
+                                                : null,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (urlInput.trim().isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Image.network(
+                                          urlInput,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (c, e, s) {
+                                            Fluttertoast.showToast(msg: '图片加载失败');
+                                            return const Icon(Icons.broken_image);
                                           },
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                // 自定义渐变按钮
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          icon: const Icon(Icons.gradient),
-                                          label: const Text('自定义渐变'),
-                                          onPressed: () async {
-                                            await showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('选择渐变色'),
-                                                  content: SingleChildScrollView(
-                                                    child: Column(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        const Text('起始色'),
-                                                        ColorPicker(
-                                                          pickerColor: gradientStart,
+                                    const SizedBox(height: 16),
+                                    // 纯色选择
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Colors.white, Colors.black, Colors.blue, Colors.green, Colors.pink, Colors.orange
+                                        ].map((color) => GestureDetector(
+                                          onTap: () {
+                                            Navigator.pop(context, {'type': 'color', 'value': color.value.toString()});
+                                          },
+                                          child: Container(
+                                            width: 36,
+                                            height: 36,
+                                            decoration: BoxDecoration(
+                                              color: color,
+                                              border: Border.all(width: 2, color: Colors.grey.shade300),
+                                              borderRadius: BorderRadius.circular(18),
+                                            ),
+                                          ),
+                                        )).toList(),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    // 自定义纯色按钮
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              icon: const Icon(Icons.palette),
+                                              label: const Text('自定义纯色'),
+                                              onPressed: () async {
+                                                await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      title: const Text('选择颜色'),
+                                                      content: SingleChildScrollView(
+                                                        child: ColorPicker(
+                                                          pickerColor: customColor,
                                                           onColorChanged: (color) {
-                                                            setModalState(() { gradientStart = color; });
+                                                            setModalState(() { customColor = color; });
                                                           },
                                                           enableAlpha: false,
                                                           showLabel: true,
-                                                          pickerAreaHeightPercent: 0.5,
+                                                          pickerAreaHeightPercent: 0.7,
                                                         ),
-                                                        const SizedBox(height: 8),
-                                                        const Text('结束色'),
-                                                        ColorPicker(
-                                                          pickerColor: gradientEnd,
-                                                          onColorChanged: (color) {
-                                                            setModalState(() { gradientEnd = color; });
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          child: const Text('取消'),
+                                                          onPressed: () => Navigator.of(context).pop(),
+                                                        ),
+                                                        TextButton(
+                                                          child: const Text('确定'),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            Navigator.pop(context, {'type': 'color', 'value': customColor.value.toString()});
                                                           },
-                                                          enableAlpha: false,
-                                                          showLabel: true,
-                                                          pickerAreaHeightPercent: 0.5,
-                                                        ),
-                                                        const SizedBox(height: 8),
-                                                        Container(
-                                                          width: 120,
-                                                          height: 32,
-                                                          decoration: BoxDecoration(
-                                                            gradient: LinearGradient(
-                                                              colors: [gradientStart, gradientEnd],
-                                                            ),
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
                                                         ),
                                                       ],
-                                                    ),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      child: const Text('取消'),
-                                                      onPressed: () => Navigator.of(context).pop(),
-                                                    ),
-                                                    TextButton(
-                                                      child: const Text('确定'),
-                                                      onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                        Navigator.pop(context, {
-                                                          'type': 'gradient',
-                                                          'value': '${gradientStart.value},${gradientEnd.value}'
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
+                                                    );
+                                                  },
                                                 );
                                               },
-                                            );
-                                          },
-                                        ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    // 自定义渐变按钮
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              icon: const Icon(Icons.gradient),
+                                              label: const Text('自定义渐变'),
+                                              onPressed: () async {
+                                                await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      title: const Text('选择渐变色'),
+                                                      content: SingleChildScrollView(
+                                                        child: Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            const Text('起始色'),
+                                                            ColorPicker(
+                                                              pickerColor: gradientStart,
+                                                              onColorChanged: (color) {
+                                                                setModalState(() { gradientStart = color; });
+                                                              },
+                                                              enableAlpha: false,
+                                                              showLabel: true,
+                                                              pickerAreaHeightPercent: 0.5,
+                                                            ),
+                                                            const SizedBox(height: 8),
+                                                            const Text('结束色'),
+                                                            ColorPicker(
+                                                              pickerColor: gradientEnd,
+                                                              onColorChanged: (color) {
+                                                                setModalState(() { gradientEnd = color; });
+                                                              },
+                                                              enableAlpha: false,
+                                                              showLabel: true,
+                                                              pickerAreaHeightPercent: 0.5,
+                                                            ),
+                                                            const SizedBox(height: 8),
+                                                            Container(
+                                                              width: 120,
+                                                              height: 32,
+                                                              decoration: BoxDecoration(
+                                                                gradient: LinearGradient(
+                                                                  colors: [gradientStart, gradientEnd],
+                                                                ),
+                                                                borderRadius: BorderRadius.circular(8),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          child: const Text('取消'),
+                                                          onPressed: () => Navigator.of(context).pop(),
+                                                        ),
+                                                        TextButton(
+                                                          child: const Text('确定'),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                            Navigator.pop(context, {
+                                                              'type': 'gradient',
+                                                              'value': '${gradientStart.value},${gradientEnd.value}'
+                                                            });
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    // 高斯模糊开关
+                                    SwitchListTile(
+                                      title: const Text('高斯模糊背景'),
+                                      value: _currentBlurEnabled, // 使用局部状态
+                                      onChanged: (newValue) {
+                                        setModalState(() {
+                                          _currentBlurEnabled = newValue;
+                                        });
+                                        widget.toggleBlur(); // 调用传入的切换方法
+                                      },
+                                    ),
+                                    const SizedBox(height: 24),
+                                  ],
                                 ),
-                                const SizedBox(height: 24),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
+                    ).then((result) {
+                      if (result != null && result is Map) {
+                        _saveBgSetting(result['type'] as String, result['value'].toString());
+                      }
+                    });
                   },
-                ).then((result) {
-                  if (result != null && result is Map) {
-                    _saveBgSetting(result['type'] as String, result['value'].toString());
-                  }
+                ),
+              ],
+            ),
+            body: _buildBodyByIndex(_selectedIndex, isDark),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 20,
+            child: LiquidGlassBottomNavBar(
+              selectedIndex: _selectedIndex,
+              isBlurEnabled: widget.isBlurEnabled,
+              onItemTapped: (index) {
+                setState(() {
+                  _selectedIndex = index;
                 });
               },
+              items: buildDefaultNavBarItems(),
+              onSearchTap: () {
+                showSpotlightSearchDialog(context);
+              },
             ),
-          ],
-        ),
-        body: CustomScrollView(
-          slivers: <Widget>[
-            // 天气组件
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8.0),
-                child: LiquidGlass(
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        isLoading
-                            ? Container(
-                                decoration: BoxDecoration(),
-                                height: 180,
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            : weatherData == null
-                                ? Container(
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBodyByIndex(int index, bool isDark) {
+    // 你可以根据 index 返回不同的内容
+    // 这里只是简单示例，实际可自定义
+    if (index == 0) {
+      // 原有 CustomScrollView
+      return CustomScrollView(
+        slivers: <Widget>[
+          // 天气组件
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8.0),
+              child: LiquidGlass(
+                tint: isDark ? Colors.black : Colors.white,
+                isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
+                child: Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      isLoading
+                          ? Container(
+                              decoration: BoxDecoration(),
+                              height: 180,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          : weatherData == null
+                              ? Container(
                                   decoration: BoxDecoration(),
                                     height: 180, // 设置与有数据时相近的高度
                                     child: const Center(
                                       child: CircularProgressIndicator(),
                                     ),
                                   )
-                                : Row(
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              SizedBox(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.62,
-                                                child: Text(
-                                                  location, // 显示城市名称
-                                                  maxLines: 2, // 限制最多显示两行
-                                                  overflow: TextOverflow
-                                                      .ellipsis, // 超出部分显示省略号
-                                                  style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Theme.of(context)
-                                                                .brightness ==
-                                                            Brightness.dark
-                                                        ? Colors.white
-                                                        : Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: refreshWeatherData,
-                                                icon: isLoading
-                                                    ? SizedBox(
-                                                        width: 24,
-                                                        height: 24,
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          strokeWidth: 2,
-                                                          valueColor:
-                                                              AlwaysStoppedAnimation<
-                                                                  Color>(widget
-                                                                      .isDarkMode
-                                                                  ? Colors.white
-                                                                  : Colors
-                                                                      .black87),
-                                                        ),
-                                                      )
-                                                    : const Icon(Icons.refresh),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                0.7,
-                                            child: Text(
-                                              weatherData!['hourly']
-                                                  ['description'],
-                                            ),
-                                          ),
-                                          Text(
-                                            '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  Theme.of(context).brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
-                                            ),
-                                          ),
-                                          Text(
-                                            '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  Theme.of(context).brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  Theme.of(context).brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  Theme.of(context).brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  Theme.of(context).brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      // Spacer(),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            children: [
-                                              SizedBox(
-                                                height: 30,
-                                              ),
-                                              getWeatherIcon(
-                                                  weatherData!['hourly']
-                                                      ['cloudrate'][0]['value']),
-                                              Text(
-                                                '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
+                              : Row(
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            SizedBox(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.62,
+                                              child: Text(
+                                                location, // 显示城市名称
+                                                maxLines: 2, // 限制最多显示两行
+                                                overflow: TextOverflow
+                                                    .ellipsis, // 超出部分显示省略号
                                                 style: TextStyle(
-                                                  fontSize: 10,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
                                                   color: Theme.of(context)
                                                               .brightness ==
                                                           Brightness.dark
-                                                      ? Colors.grey[300]
-                                                      : Colors.black87,
+                                                      ? Colors.white
+                                                      : Colors.black,
                                                 ),
-                                                textAlign: TextAlign.center,
                                               ),
-                                            ],
+                                            ),
+                                            IconButton(
+                                              onPressed: refreshWeatherData,
+                                              icon: isLoading
+                                                  ? SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                                Color>(widget
+                                                                    .isDarkMode
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87),
+                                                      ),
+                                                    )
+                                                  : const Icon(Icons.refresh),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.7,
+                                          child: Text(
+                                            weatherData!['hourly']
+                                                ['description'],
                                           ),
-                                        ],
-                                      ),
-                                    ],
-                                  )
-                      ],
-                    ),
+                                        ),
+                                        Text(
+                                          '降水概率: ${weatherData!['hourly']['precipitation'][0]['probability']}%',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        Text(
+                                          '体感温度: ${weatherData!['hourly']['apparent_temperature'][0]['value']}°C',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '风速: ${weatherData!['hourly']['wind'][0]['speed']} m/s',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '农历: ${Lunar.fromDate(DateTime.now()).toString()}', // 农历日期
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '星期: ${DateFormat.EEEE().format(DateTime.now())}', // 显示星期几
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    // Spacer(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            getWeatherIcon(
+                                                weatherData!['hourly']
+                                                    ['cloudrate'][0]['value']),
+                                            Text(
+                                              '${getWeatherDescription(weatherData!['hourly']['cloudrate'][0]['value'])}\n${weatherData!['hourly']['temperature'][0]['value']}°C', // 具体天气情况
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.black87,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                    ],
                   ),
                 ),
               ),
             ),
-            // 主功能组件
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 1.2,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  final item = _listItems[index];
-                  // final baseColor =
-                  //     isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
+          ),
+          // 主功能组件
+          SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1.2,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final item = _listItems[index];
+                // final baseColor =
+                //     isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
 
-                  return Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        if (item['page'] is Text) {
-                          Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
-                          return;
-                        }
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => item['page']),
-                        );
-                      },
-                      child: LiquidGlass(
-                        child: Container(
-                          padding: EdgeInsets.all(8),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              ClayContainer(
-                                height: 50,
-                                width: 50,
-                                depth: 80,
-                                spread: 0,
-                                borderRadius: 35,
-                                curveType: CurveType.convex,
-                                color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : Color.fromARGB(11, 204, 253, 204),
-                                child: Icon(
-                                  item['icon'],
-                                  size: 32,
-                                  // color: isDark
-                                  //     ? Color.fromARGB(255, 230, 225, 236)
-                                  //     : const Color.fromARGB(255, 99, 98, 102),
-                                ),
+                return Padding(
+                  padding: EdgeInsets.all(4.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      if (item['page'] is Text) {
+                        Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => item['page']),
+                      );
+                    },
+                    child: LiquidGlass(
+                      tint: isDark ? Colors.black : Colors.white,
+                      isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            ClayContainer(
+                              height: 50,
+                              width: 50,
+                              depth: 80,
+                              spread: 0,
+                              borderRadius: 35,
+                              curveType: CurveType.convex,
+                              color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : isDark ? const Color.fromARGB(255, 51, 44, 22) : Color.fromARGB(11, 204, 253, 204),
+                              child: Icon(
+                                item['icon'],
+                                size: 32,
+                                // color: isDark
+                                //     ? Color.fromARGB(255, 230, 225, 236)
+                                //     : const Color.fromARGB(255, 99, 98, 102),
                               ),
-                              SizedBox(height: 16),
-                              Text(
-                                item['text'],
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : Colors.black87,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              item['text'],
+                              style: TextStyle(
+                                color: isDark
+                                    ? Colors.white
+                                    : Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  );
-                },
-                childCount: _listItems.length,
-              ),
+                  ),
+                );
+              },
+              childCount: _listItems.length,
             ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            // 次功能组件
-            SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                childAspectRatio: 1,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  final item = _imageItems[index];
-                  return _buildCard(
-                    context,
-                    item['text']!,
-                    item['icon']!,
-                    item['page']!,
-                    isDark ? Colors.grey[700]! : Colors.orangeAccent,
-                    isDark ? Colors.white : Colors.black87,
-                    isImageSection: true,
-                    isDark: isDark,
-                  );
-                },
-                childCount: _imageItems.length,
-              ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          // 次功能组件
+          SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 1,
             ),
-          ],
+            delegate: SliverChildBuilderDelegate(
+              (BuildContext context, int index) {
+                final item = _imageItems[index];
+                return _buildCard(
+                  context,
+                  item['text']!,
+                  item['icon']!,
+                  item['page']!,
+                  isDark ? Colors.grey[700]! : Colors.orangeAccent,
+                  isDark ? Colors.white : Colors.black87,
+                  isImageSection: true,
+                  isDark: isDark,
+                );
+              },
+              childCount: _imageItems.length,
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+        ],
+      );
+    } else if (index == 1) {
+      // 展示主功能区
+      return GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 1.2,
         ),
-      ),
-    );
+        itemCount: _listItems.length,
+        itemBuilder: (context, idx) {
+          final item = _listItems[idx];
+          return Padding(
+            padding: EdgeInsets.all(4.0),
+            child: GestureDetector(
+              onTap: () {
+                if (item['page'] is Text) {
+                  Fluttertoast.showToast(msg: '该功能正在开发中，敬请期待');
+                  return;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => item['page']),
+                );
+              },
+              child: LiquidGlass(
+                tint: isDark ? Colors.black : Colors.white,
+                isBlurEnabled: widget.isBlurEnabled, // 传递高斯模糊状态
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      ClayContainer(
+                        height: 50,
+                        width: 50,
+                        depth: 80,
+                        spread: 0,
+                        borderRadius: 35,
+                        curveType: CurveType.convex,
+                        color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : isDark ? const Color.fromARGB(255, 51, 44, 22)  : Color.fromARGB(11, 204, 253, 204),
+                        child: Icon(
+                          item['icon'],
+                          size: 32,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        item['text'],
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } else if (index == 2) {
+      // 展示次功能区
+      return GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 6,
+          mainAxisSpacing: 6,
+          childAspectRatio: 1,
+        ),
+        itemCount: _imageItems.length,
+        itemBuilder: (context, idx) {
+          final item = _imageItems[idx];
+          return _buildCard(
+            context,
+            item['text']!,
+            item['icon']!,
+            item['page']!,
+            isDark ? Colors.grey[700]! : Colors.orangeAccent,
+            isDark ? Colors.white : Colors.black87,
+            isImageSection: true,
+            isDark: isDark,
+          );
+        },
+      );
+    } else if (index == 3) {
+      // 展示webview新闻
+      return const WebViewer(
+        isShowAppBar: false,
+        initialUrl: 'http://news.chuankuan.com.cn',
+      );
+    } else {
+      // 搜索按钮或其他
+      return Center(child: Text('搜索功能开发中', style: TextStyle(fontSize: 20)));
+    }
   }
 
   Widget _buildCard(
@@ -944,6 +1123,8 @@ class _YifengState extends State<Yifeng> {
           );
         },
         child: LiquidGlass(
+          tint: isDark ? Colors.black : Colors.white,
+          isBlurEnabled: widget.isBlurEnabled, // 使用 widget.isBlurEnabled
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -954,7 +1135,7 @@ class _YifengState extends State<Yifeng> {
                 spread: 0,
                 borderRadius: isImageSection ? 23 : 30,
                 curveType: CurveType.convex,
-                color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : Color.fromARGB(10, 175, 255, 255),
+                color: _bgType ==  "color" ? Color(int.tryParse(_bgValue ?? '') ?? 0xFFFFFFFF) : isDark ? Colors.blue.shade100 : Color.fromARGB(10, 175, 255, 255),
                 child: Icon(
                   icon,
                   size: isImageSection ? 24 : 30,
@@ -1017,6 +1198,42 @@ class _YifengState extends State<Yifeng> {
       }
     } catch (e) {
       print('Error: $e');
+      Position position = Position(
+        latitude: 23.050556, // 示例纬度（北京）
+        longitude: 113.138611, // 示例经度（北京）
+        timestamp: DateTime.now(), // 当前时间
+        accuracy: 10.0, // 假设的精确度，单位：米
+        altitude: 0.0, // 假设的海拔高度，单位：米
+        altitudeAccuracy: 5.0, // 假设的海拔精确度，单位：米
+        heading: 0.0, // 假设的方向，单位：度
+        headingAccuracy: 0.0, // 假设的方向精度，单位：度
+        speed: 0.0, // 假设的速度，单位：米/秒
+        speedAccuracy: 0.0, // 假设的速度精确度，单位：米/秒
+      );
+      // 使用当前经纬度构建 API 请求
+      final response = await http.get(Uri.parse(
+        'https://api.caiyunapp.com/v2.6/h8T0Rl89rMPeV37x/${position.longitude},${position.latitude}/hourly?hourlysteps=10',
+      ));
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['status'] == 'ok') {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(
+              'weatherData', jsonEncode(jsonResponse['result']));
+          await prefs.setString(
+              'lastFetchTime', DateTime.now().toIso8601String());
+
+          setState(() {
+            weatherData = jsonResponse['result'];
+            print(weatherData);
+          });
+        } else {
+          throw Exception('Failed to load weather data');
+        }
+      } else {
+        throw Exception('Failed to load weather data');
+      }
     }
 
     setState(() {
@@ -1058,6 +1275,8 @@ class _YifengState extends State<Yifeng> {
           setState(() {
             location = "佛山南海";
           });
+          
+          fetchWeatherData();
 
           // 继续执行：如果你希望在超时后继续执行剩余的逻辑，返回一个假定的位置
           return createDefaultPosition();
@@ -1110,8 +1329,10 @@ class _YifengState extends State<Yifeng> {
         gravity: ToastGravity.BOTTOM,
       );
       setState(() {
-        location = "获取位置失败"; // 可以根据需求设置一个合适的默认值
+        location = "佛山南海"; // 可以根据需求设置一个合适的默认值
       });
+      
+      fetchWeatherData();
     }
   }
 
@@ -1320,4 +1541,79 @@ class _YifengState extends State<Yifeng> {
       'page': Text('待开发'),
     },
   ];
+}
+
+void showSpotlightSearchDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      return Center(
+        child: Material(
+          color: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+              child: Container(
+                width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.92,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.85),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 32,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.search, color: Colors.black54),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            autofocus: true,
+                            decoration: const InputDecoration(
+                              hintText: '搜索…',
+                              border: InputBorder.none,
+                              isDense: true,
+                            ),
+                            style: const TextStyle(fontSize: 20),
+                            onSubmitted: (value) async {
+                              Navigator.of(context).pop();
+                              if (value.trim().isNotEmpty) {
+                                final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(value)}';
+                                if (await canLaunchUrl(Uri.parse(url))) {
+                                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                } else {
+                                  Fluttertoast.showToast(msg: '无法打开浏览器');
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.black38),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+                    // const SizedBox(height: 16),
+                    // 可扩展：搜索建议、历史、热词等
+                    // const Text('搜索历史/建议区域', style: TextStyle(color: Colors.black45)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

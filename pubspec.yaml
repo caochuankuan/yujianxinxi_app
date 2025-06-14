@@ -51,7 +51,6 @@ dependencies:
   device_preview: ^1.2.0
   device_preview_screenshot: ^1.0.0
   clay_containers: ^0.3.4
-  liquid_glass: ^0.0.2
   flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
