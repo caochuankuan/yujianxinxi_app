@@ -46,7 +46,7 @@ jobs:
           echo '{' > version.json
           echo '  "version": "${{ github.event.inputs.tag_name || github.ref_name }}",' >> version.json
           echo '  "build_number": 1,' >> version.json
-          echo '  "apk_url": "http://chuankuan.com.cn/appupdate/app-release.apk",' >> version.json
+          echo '  "apk_url": "http://chuankuan.com.cn/appupdate/build/app/outputs/flutter-apk/app-release.apk",' >> version.json
           echo '  "changelog": "自动构建上传"' >> version.json
           echo '}' >> version.json
           
