@@ -51,6 +51,8 @@ dependencies:
   device_preview: ^1.2.0
   device_preview_screenshot: ^1.0.0
   clay_containers: ^0.3.4
+  liquid_glass: ^0.0.2
+  flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
   flutter_test:
@@ -84,6 +86,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/icon/app.png
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
