@@ -40,15 +40,15 @@ jobs:
       # - name: Build APK
       #   run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
-      # 6. 创建 GitHub Release
-      - name: Create GitHub Release
-        id: release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event.inputs.tag_name }}
-          files: build/app/outputs/flutter-apk/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # # 6. 创建 GitHub Release
+      # - name: Create GitHub Release
+      #   id: release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     tag_name: ${{ github.event.inputs.tag_name }}
+      #     files: build/app/outputs/flutter-apk/*.apk
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # # 7. 上传 APK 到 Release
       # - name: Upload APK to Release
@@ -80,5 +80,4 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: |
             version.json
-            # build/app/outputs/flutter-apk/app-release.apk
           target: /www/wwwroot/yujianyifeng/appupdate/
