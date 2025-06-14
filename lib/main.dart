@@ -1592,7 +1592,15 @@ void showSpotlightSearchDialog(BuildContext context) {
                                 if (await canLaunchUrl(Uri.parse(url))) {
                                   await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                                 } else {
-                                  Fluttertoast.showToast(msg: '无法打开浏览器');
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => WebViewer(
+                                        isShowAppBar: true,
+                                        initialUrl: url,
+                                      ),
+                                    ),
+                                  );
                                 }
                               }
                             },
