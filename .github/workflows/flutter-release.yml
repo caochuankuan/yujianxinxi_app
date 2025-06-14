@@ -16,29 +16,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # # 1. Checkout 代码
-      # - uses: actions/checkout@v4
+      # 1. Checkout 代码
+      - uses: actions/checkout@v4
 
-      # # 2. 设置 Java
-      # - name: Set up Java
-      #   uses: actions/setup-java@v3
-      #   with:
-      #     distribution: 'zulu'
-      #     java-version: '17'
+      # 2. 设置 Java
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-      # # 3. 设置 Flutter
-      # - name: Set up Flutter
-      #   uses: subosito/flutter-action@v2
-      #   with:
-      #     flutter-version: '3.29.3'
+      # 3. 设置 Flutter
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
 
-      # # 4. 安装依赖
-      # - name: Install dependencies
-      #   run: flutter pub get
+      # 4. 安装依赖
+      - name: Install dependencies
+        run: flutter pub get
 
-      # # 5. 构建 APK
-      # - name: Build APK
-      #   run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+      # 5. 构建 APK
+      - name: Build APK
+        run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
         
       # 6. 生成 version.json
       - name: Generate version.json (safe echo version)
@@ -49,6 +49,9 @@ jobs:
           echo '  "apk_url": "http://chuankuan.com.cn/appupdate/app-release.apk",' >> version.json
           echo '  "changelog": "自动构建上传"' >> version.json
           echo '}' >> version.json
+          
+      - name: 🔍 List generated files
+        run: ls -l build/app/outputs/flutter-apk/
 
       # 7. 上传 version.json 和所有 APK 到服务器
       - name: Upload APK and version.json to server
@@ -60,14 +63,15 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: |
             version.json
+            build/app/outputs/flutter-apk/app-release.apk
           target: /www/wwwroot/yujianyifeng/appupdate/
 
-      # # 8. 创建 GitHub Release
-      # - name: Create GitHub Release
-      #   id: release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     tag_name: ${{ github.event.inputs.tag_name }}
-      #     files: build/app/outputs/flutter-apk/*.apk
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 8. 创建 GitHub Release
+      - name: Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          files: build/app/outputs/flutter-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
