@@ -39,28 +39,8 @@ jobs:
       # 5. 构建 APK
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
-
-      # 6. 创建 GitHub Release
-      - name: Create GitHub Release
-        id: release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.event.inputs.tag_name }}
-          files: build/app/outputs/flutter-apk/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 7. 上传 APK 到 Release
-      - name: Upload APK to Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/flutter-apk/app-release-arm64.apk
-            build/app/outputs/flutter-apk/app-release-x86.apk
-            build/app/outputs/flutter-apk/app-release-x64.apk
-
-      # 8. 生成 version.json
+        
+      # 6. 生成 version.json
       - name: Generate version.json (safe echo version)
         run: |
           echo '{' > version.json
@@ -69,8 +49,13 @@ jobs:
           echo '  "apk_url": "http://chuankuan.com.cn/appupdate/app-release.apk",' >> version.json
           echo '  "changelog": "自动构建上传"' >> version.json
           echo '}' >> version.json
+          
+      - name: Debug: Check generated files
+        run: |
+          ls -lh version.json
+          ls -lh build/app/outputs/flutter-apk/
 
-      # 9. 上传 version.json 和所有 APK 到服务器
+      # 7. 上传 version.json 和所有 APK 到服务器
       - name: Upload APK and version.json to server
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -82,3 +67,13 @@ jobs:
             version.json
             build/app/outputs/flutter-apk/app-release.apk
           target: /www/wwwroot/yujianyifeng/appupdate/
+
+      # 8. 创建 GitHub Release
+      - name: Create GitHub Release
+        id: release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          files: build/app/outputs/flutter-apk/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lunar/lunar.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,13 @@ import 'package:yifeng_site/bilibili_page.dart';
 import 'package:yifeng_site/bing_wallpaper_page.dart';
 import 'package:yifeng_site/daily_news_page.dart';
 import 'package:yifeng_site/epic_free_games_page.dart';
-import 'package:yifeng_site/global_box_office_page.dart';
 import 'package:yifeng_site/liquid_glass.dart';
 import 'package:yifeng_site/mingxing_bagua.dart';
 import 'package:yifeng_site/moyu_rili.dart';
 import 'package:yifeng_site/moyuribao_page.dart';
 import 'package:yifeng_site/neihan_duanzi.dart';
 import 'package:yifeng_site/today_in_history_page.dart';
+import 'package:yifeng_site/update_checker.dart';
 import 'package:yifeng_site/web_viewer.dart';
 import 'package:yifeng_site/weibo_page.dart';
 import 'package:yifeng_site/xingzuo_yunshi.dart';
@@ -263,6 +264,7 @@ class _YifengState extends State<Yifeng> {
   @override
   void initState() {
     super.initState();
+    checkForUpdate(context, false);
     getLocationName(); // 获取位置名称
     _loadBgSetting();
   }
@@ -364,11 +366,13 @@ class _YifengState extends State<Yifeng> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.info_outline),
-                    onPressed: () {
+                    onPressed: () async {
+                      final packageInfo = await PackageInfo.fromPlatform();
+                      final currentVersion = packageInfo.version;
                       showAboutDialog(
                         context: context,
                         applicationName: '遇见信息',
-                        applicationVersion: '1.0.1',
+                        applicationVersion: currentVersion,
                         applicationIcon: const Image(
                           image: AssetImage('assets/icon/app.png'),
                           width: 50,
@@ -378,6 +382,10 @@ class _YifengState extends State<Yifeng> {
                           Text('作者：于逸风'),
                           Text('联系方式：2835082172@qq.com'),
                           Text('GitHub：https://github.com/caochuankuan/'),
+                          ElevatedButton(
+                            onPressed: () => checkForUpdate(context, true),
+                            child: const Text('检查更新'),
+                          ),
                         ],
                       );
                     },
