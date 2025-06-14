@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +6,8 @@ import 'package:flutter/services.dart';
 
 // 抖音页面部件
 class DouyinPage extends StatefulWidget {
+  const DouyinPage({super.key});
+
   @override
   _DouyinPageState createState() => _DouyinPageState();
 }

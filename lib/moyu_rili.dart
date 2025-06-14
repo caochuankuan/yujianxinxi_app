@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 // 摸鱼日历页面部件
 class MoyuRiliPage extends StatefulWidget {
+  const MoyuRiliPage({super.key});
+
   @override
   _MoyuRiliPageState createState() => _MoyuRiliPageState();
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 // 新闻页面部件
 class NewsPage extends StatefulWidget {
+  const NewsPage({super.key});
+
   @override
   _NewsPageState createState() => _NewsPageState();
 }

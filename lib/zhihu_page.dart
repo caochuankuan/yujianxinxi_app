@@ -5,10 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // 知乎页面部件
+// ignore: must_be_immutable
 class ZhihuPage extends StatefulWidget {
   Future<ZhihuApiResponse> futureData;
 
-  ZhihuPage({required this.futureData});
+  ZhihuPage({super.key, required this.futureData});
 
   @override
   _ZhihuPageState createState() => _ZhihuPageState();

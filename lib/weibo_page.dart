@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors
+// ignore_for_file: must_be_immutable
 
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 class WeiboPage extends StatefulWidget {
   Future<WeiboApiResponse> futureData;
 
-  WeiboPage({required this.futureData});
+  WeiboPage({super.key, required this.futureData});
 
   @override
   _WeiboPageState createState() => _WeiboPageState();

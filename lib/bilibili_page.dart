@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +6,8 @@ import 'package:flutter/services.dart';
 
 // B 站页面部件
 class BilibiliPage extends StatefulWidget {
+  const BilibiliPage({super.key});
+
   @override
   _BilibiliPageState createState() => _BilibiliPageState();
 }
@@ -100,6 +100,7 @@ class _BilibiliPageState extends State<BilibiliPage> {
   }
 
   // 跳转到百度搜索
+  // ignore: unused_element
   void _searchOnBaidu(String query) async {
     final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(query)}';
     if (await canLaunch(url)) {

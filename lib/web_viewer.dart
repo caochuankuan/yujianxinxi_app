@@ -4,7 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class WebViewer extends StatefulWidget {
   final String initialUrl;
 
-  const WebViewer({Key? key, required this.initialUrl}) : super(key: key);
+  const WebViewer({super.key, required this.initialUrl});
 
   @override
   _WebViewerState createState() => _WebViewerState();

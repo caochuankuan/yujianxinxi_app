@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -7,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 
 class TodayInHistoryPage extends StatefulWidget {
+  const TodayInHistoryPage({super.key});
+
   @override
   _TodayInHistoryPageState createState() => _TodayInHistoryPageState();
 }

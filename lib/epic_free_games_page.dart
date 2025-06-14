@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -10,7 +8,7 @@ import 'package:flutter/services.dart';
 class EpicFreeGamesPage extends StatefulWidget {
   final Future<List<EpicGame>> futureGames;
 
-  EpicFreeGamesPage({required this.futureGames});
+  const EpicFreeGamesPage({super.key, required this.futureGames});
 
   @override
   _EpicFreeGamesPageState createState() => _EpicFreeGamesPageState();

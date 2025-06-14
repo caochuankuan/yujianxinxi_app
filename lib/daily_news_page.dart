@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors, prefer_final_fields
-
 import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -16,7 +14,7 @@ import 'dart:io';
 class DailyNewsPage extends StatefulWidget {
   final Future<DailyNewsApiResponse> futureData;
 
-  DailyNewsPage({required this.futureData});
+  const DailyNewsPage({super.key, required this.futureData});
 
   @override
   _DailyNewsPageState createState() => _DailyNewsPageState();
@@ -24,7 +22,7 @@ class DailyNewsPage extends StatefulWidget {
 
 class _DailyNewsPageState extends State<DailyNewsPage> {
   late Future<DailyNewsApiResponse> _newsData;
-  GlobalKey _globalKey = GlobalKey(); // 用于 RepaintBoundary
+  final GlobalKey _globalKey = GlobalKey(); // 用于 RepaintBoundary
 
   @override
   void initState() {
@@ -137,6 +135,7 @@ class _DailyNewsPageState extends State<DailyNewsPage> {
                   !RegExp(r'^[\u4e00-\u9fa5]').hasMatch(data.tip)) {
                 // 使用备用接口
                 return Container(
+                  decoration: BoxDecoration(),
                   child: Text(
                     '暂时无法获取新闻，请稍后重试',
                     style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),

@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 
 class BrowserPage extends StatefulWidget {
-  const BrowserPage({Key? key}) : super(key: key);
+  const BrowserPage({super.key});
 
   @override
   _BrowserPageState createState() => _BrowserPageState();
@@ -752,6 +752,7 @@ class _BrowserPageState extends State<BrowserPage>
   }
 
   // 添加分享对话框方法
+  // ignore: unused_element
   void _showShareDialog(String title, String url) {
     showDialog(
       context: context,

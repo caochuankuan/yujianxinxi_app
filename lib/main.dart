@@ -4,7 +4,7 @@ import 'package:clay_containers/widgets/clay_container.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:intl/intl.dart';
-import 'package:geolocator/geolocator.dart'; // 导入 geolocator
+import 'package:geolocator/geolocator.dart';
 import 'package:liquid_glass/liquid_glass.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lunar/lunar.dart';
@@ -30,9 +30,7 @@ import 'douyin_page.dart';
 import 'news_page.dart';
 import 'package:quick_actions/quick_actions.dart';
 import 'package:yifeng_site/browser_page.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:device_preview_screenshot/device_preview_screenshot.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 // 主程序入口
@@ -258,7 +256,7 @@ class _YifengState extends State<Yifeng> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseColor = isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
+    // final baseColor = isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
 
     // 动态背景渲染
     BoxDecoration bgDecoration;
@@ -644,6 +642,7 @@ class _YifengState extends State<Yifeng> {
                       children: [
                         isLoading
                             ? Container(
+                                decoration: BoxDecoration(),
                                 height: 180,
                                 child: const Center(
                                   child: CircularProgressIndicator(),
@@ -651,6 +650,7 @@ class _YifengState extends State<Yifeng> {
                               )
                             : weatherData == null
                                 ? Container(
+                                  decoration: BoxDecoration(),
                                     height: 180, // 设置与有数据时相近的高度
                                     child: const Center(
                                       child: CircularProgressIndicator(),
@@ -825,8 +825,8 @@ class _YifengState extends State<Yifeng> {
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
                   final item = _listItems[index];
-                  final baseColor =
-                      isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
+                  // final baseColor =
+                  //     isDark ? Color(0xFF2C2C2C) : Color(0xFFF0F0F3);
 
                   return Padding(
                     padding: EdgeInsets.all(4.0),
@@ -926,9 +926,9 @@ class _YifengState extends State<Yifeng> {
     bool isImageSection = false,
     bool isDark = false,
   }) {
-    final baseColor = isDark
-        ? Color(0xFF2C2C2C)
-        : Color.fromARGB(255, 252, 244, 244);
+    // final baseColor = isDark
+    //     ? Color(0xFF2C2C2C)
+    //     : Color.fromARGB(255, 252, 244, 244);
 
     return Padding(
       padding: EdgeInsets.all(6.0),

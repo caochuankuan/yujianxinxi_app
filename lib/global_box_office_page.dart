@@ -95,7 +95,7 @@ class IndexItem {
 }
 
 class GlobalBoxOfficePage extends StatefulWidget {
-  const GlobalBoxOfficePage({Key? key}) : super(key: key);
+  const GlobalBoxOfficePage({super.key});
 
   @override
   _GlobalBoxOfficePageState createState() => _GlobalBoxOfficePageState();
@@ -208,6 +208,7 @@ class _GlobalBoxOfficePageState extends State<GlobalBoxOfficePage> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -357,19 +358,4 @@ class _GlobalBoxOfficePageState extends State<GlobalBoxOfficePage> {
     );
   }
 
-  Widget _buildFooter(String tips) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.grey[200],
-      child: Text(
-        tips,
-        style: TextStyle(
-          fontSize: 12,
-          color: Colors.grey[700],
-          fontStyle: FontStyle.italic,
-        ),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: use_key_in_widget_constructors, library_private_types_in_public_api
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 // 星座运势页面部件
 class XingzuoYunshiPage extends StatefulWidget {
+  const XingzuoYunshiPage({super.key});
+
   @override
   _XingzuoYunshiPageState createState() => _XingzuoYunshiPageState();
 }

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors_in_immutables, use_key_in_widget_constructors
-
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
@@ -13,7 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 class BingWallpaperPage extends StatefulWidget {
   final Future<BingWallpaperApiResponse> futureData;
 
-  BingWallpaperPage({required this.futureData});
+  const BingWallpaperPage({super.key, required this.futureData});
 
   @override
   _BingWallpaperPageState createState() => _BingWallpaperPageState();

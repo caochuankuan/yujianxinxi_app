@@ -8,6 +8,8 @@ import 'package:intl/intl.dart';
 
 // 摸鱼日报页面部件
 class MoyuRibaoPage extends StatefulWidget {
+  const MoyuRibaoPage({super.key});
+
   @override
   _MoyuRibaoPageState createState() => _MoyuRibaoPageState();
 }
