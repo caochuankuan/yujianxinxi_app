@@ -31,16 +31,26 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.29.3'
+          
+      # 4. 准备签名
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/release-keystore.jks
 
-      # 4. 安装依赖
+      - name: Set up keystore env
+        run: |
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      # 5. 安装依赖
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. 构建 APK
+      # 6. 构建 APK
       - name: Build APK
         run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
         
-      # 6. 生成 version.json
+      # 7. 生成 version.json
       - name: Generate version.json (safe echo version)
         run: |
           echo '{' > version.json
@@ -53,7 +63,7 @@ jobs:
       - name: 🔍 List generated files
         run: ls -l build/app/outputs/flutter-apk/
 
-      # 7. 上传 version.json 和所有 APK 到服务器
+      # 8. 上传 version.json 和所有 APK 到服务器
       # 上传 version.json
       - name: Upload version.json to server
         uses: appleboy/scp-action@v0.1.4
@@ -78,7 +88,7 @@ jobs:
           target: /www/wwwroot/yujianyifeng/appupdate/
           debug: true
 
-      # 8. 创建 GitHub Release
+      # 9. 创建 GitHub Release
       - name: Create GitHub Release
         id: release
         uses: softprops/action-gh-release@v1

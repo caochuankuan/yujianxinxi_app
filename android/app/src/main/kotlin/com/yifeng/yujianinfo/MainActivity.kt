@@ -1,4 +1,4 @@
-package com.example.yifeng_site
+package com.yifeng.yujianinfo
 
 import io.flutter.embedding.android.FlutterActivity
 
