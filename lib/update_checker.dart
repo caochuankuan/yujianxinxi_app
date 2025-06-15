@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -61,12 +62,13 @@ void _showUpdateDialog(BuildContext context, String version, String apkUrl, Stri
           child: const Text('下载更新'),
           onPressed: () async {
             Navigator.of(context).pop();
-            if (await canLaunchUrl(Uri.parse(apkUrl))) {
+            try {
               await launchUrl(Uri.parse(apkUrl), mode: LaunchMode.externalApplication);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('无法打开下载链接')),
-              );
+            } catch (e) {
+              // 复制到剪贴板
+              await Clipboard.setData(ClipboardData(text: apkUrl));
+              // 提示用户
+              Fluttertoast.showToast(msg: "无法打开下载链接，已复制链接，请用浏览器粘贴打开");
             }
           },
         ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:clay_containers/constants.dart';
 import 'package:clay_containers/widgets/clay_container.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:intl/intl.dart';
@@ -1638,18 +1639,25 @@ void showSpotlightSearchDialog(BuildContext context) {
                                 Navigator.of(context).pop();
                                 if (value.trim().isNotEmpty) {
                                   final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(value)}';
-                                  if (await canLaunchUrl(Uri.parse(url))) {
-                                    await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                                  } else {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => BrowserPage(
-                                          isShowAppBar: true,
-                                          url: url,
+                                  try {
+                                    final uri = Uri.parse(url);
+                                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  } catch (e) {
+                                    try {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => BrowserPage(
+                                            isShowAppBar: true,
+                                            url: url,
+                                          ),
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    } catch (e) {
+                                      // 打开失败，复制到剪贴板
+                                      await Clipboard.setData(ClipboardData(text: url));
+                                      Fluttertoast.showToast(msg: "无法打开链接，地址已复制，请用浏览器粘贴访问");
+                                    }
                                   }
                                 }
                               },
