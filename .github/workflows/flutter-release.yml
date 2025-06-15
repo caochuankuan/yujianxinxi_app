@@ -34,7 +34,7 @@ jobs:
           
       # 4. 准备签名
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/release-keystore.jks
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
 
       - name: Set up keystore env
         run: |
