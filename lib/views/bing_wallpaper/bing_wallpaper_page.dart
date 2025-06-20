@@ -9,9 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 // Bing 每日壁纸页面部件
 class BingWallpaperPage extends StatefulWidget {
-  final Future<BingWallpaperApiResponse> futureData;
 
-  const BingWallpaperPage({super.key, required this.futureData});
+  const BingWallpaperPage({super.key});
 
   @override
   _BingWallpaperPageState createState() => _BingWallpaperPageState();
@@ -23,7 +22,7 @@ class _BingWallpaperPageState extends State<BingWallpaperPage> {
   @override
   void initState() {
     super.initState();
-    _futureData = widget.futureData;
+    _futureData = fetchBingWallpaperData();
   }
 
   // 刷新数据

@@ -12,9 +12,8 @@ import 'dart:io';
 
 // 每日新闻页面部件
 class DailyNewsPage extends StatefulWidget {
-  final Future<DailyNewsApiResponse> futureData;
 
-  const DailyNewsPage({super.key, required this.futureData});
+  const DailyNewsPage({super.key});
 
   @override
   _DailyNewsPageState createState() => _DailyNewsPageState();
@@ -27,7 +26,7 @@ class _DailyNewsPageState extends State<DailyNewsPage> {
   @override
   void initState() {
     super.initState();
-    _newsData = widget.futureData;
+    _newsData = fetchDailyNewsData();
   }
 
   // 刷新数据

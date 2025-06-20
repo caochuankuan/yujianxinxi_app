@@ -7,15 +7,22 @@ import 'package:url_launcher/url_launcher.dart';
 // 知乎页面部件
 // ignore: must_be_immutable
 class ZhihuPage extends StatefulWidget {
-  Future<ZhihuApiResponse> futureData;
 
-  ZhihuPage({super.key, required this.futureData});
+  ZhihuPage({super.key});
 
   @override
   _ZhihuPageState createState() => _ZhihuPageState();
 }
 
 class _ZhihuPageState extends State<ZhihuPage> {
+  late Future<ZhihuApiResponse> futureData;
+  
+  @override
+  void initState() {
+    super.initState();
+    futureData = fetchZhihuData();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +34,7 @@ class _ZhihuPageState extends State<ZhihuPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
-                widget.futureData = fetchZhihuData();
+                futureData = fetchZhihuData();
               });
             }, // 刷新按钮
           ),
@@ -35,7 +42,7 @@ class _ZhihuPageState extends State<ZhihuPage> {
         ],
       ),
       body: FutureBuilder<ZhihuApiResponse>(
-        future: widget.futureData,
+        future: futureData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -135,6 +142,7 @@ Future<ZhihuApiResponse> fetchZhihuData() async {
   final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/zhihu'));
 
   if (response.statusCode == 200) {
+    print(response.body);
     return ZhihuApiResponse.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Failed to load Zhihu data');

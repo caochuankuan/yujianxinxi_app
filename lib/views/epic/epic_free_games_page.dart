@@ -6,9 +6,8 @@ import 'package:flutter/services.dart';
 
 // Epic 免费游戏页面部件
 class EpicFreeGamesPage extends StatefulWidget {
-  final Future<List<EpicGame>> futureGames;
 
-  const EpicFreeGamesPage({super.key, required this.futureGames});
+  const EpicFreeGamesPage({super.key});
 
   @override
   _EpicFreeGamesPageState createState() => _EpicFreeGamesPageState();
@@ -20,7 +19,7 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
   @override
   void initState() {
     super.initState();
-    _futureGames = widget.futureGames;
+    _futureGames = fetchEpicFreeGames();
   }
 
   // 刷新数据

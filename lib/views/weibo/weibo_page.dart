@@ -8,15 +8,22 @@ import 'package:url_launcher/url_launcher.dart';
 
 // 微博页面部件
 class WeiboPage extends StatefulWidget {
-  Future<WeiboApiResponse> futureData;
 
-  WeiboPage({super.key, required this.futureData});
+  WeiboPage({super.key});
 
   @override
   _WeiboPageState createState() => _WeiboPageState();
 }
 
 class _WeiboPageState extends State<WeiboPage> {
+  late Future<WeiboApiResponse> futureData;
+    
+  @override
+  void initState() {
+    super.initState();
+    futureData = fetchWeiboData();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +35,7 @@ class _WeiboPageState extends State<WeiboPage> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {
-                widget.futureData = fetchWeiboData();
+                futureData = fetchWeiboData();
               });
             }, // 刷新按钮
           ),
@@ -36,7 +43,7 @@ class _WeiboPageState extends State<WeiboPage> {
         ],
       ),
       body: FutureBuilder<WeiboApiResponse>(
-        future: widget.futureData,
+        future: futureData,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
