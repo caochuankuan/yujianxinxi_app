@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
+import 'package:yifeng_site/models/douyin_item.dart';
+import 'package:yifeng_site/services/douyin_api.dart';
 
 // 抖音页面部件
 class DouyinPage extends StatefulWidget {
@@ -126,52 +126,6 @@ class _DouyinPageState extends State<DouyinPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 抖音 API 数据模型类
-Future<DouyinApiResponse> fetchDouyinData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/douyin'));
-
-  if (response.statusCode == 200) {
-    return DouyinApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Douyin data');
-  }
-}
-
-class DouyinApiResponse {
-  final List<DouyinItem> items;
-
-  DouyinApiResponse({required this.items});
-
-  factory DouyinApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<DouyinItem> itemList = list.map((i) => DouyinItem.fromJson(i)).toList();
-    return DouyinApiResponse(items: itemList);
-  }
-}
-
-class DouyinItem {
-  final String title;
-  final int hotValue;
-  final String coverUrl;
-  final String link;  // 添加 link 字段
-
-  DouyinItem({
-    required this.title,
-    required this.hotValue,
-    required this.coverUrl,
-    required this.link,  // 添加 link 参数
-  });
-
-  factory DouyinItem.fromJson(Map<String, dynamic> json) {
-    return DouyinItem(
-      title: json['title'] ?? '',
-      hotValue: json['hot_value'] ?? 0,
-      coverUrl: json['cover'] ?? '',
-      link: json['link'] ?? '',  // 解析 link 字段
     );
   }
 }

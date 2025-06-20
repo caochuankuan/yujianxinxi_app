@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:yifeng_site/services/neihan_duanzi.dart';
 
 // 内涵段子页面部件
 class NeihanDuanziPage extends StatefulWidget {
@@ -178,21 +178,5 @@ class _NeihanDuanziPageState extends State<NeihanDuanziPage> {
       print(e);
       return false;
     }
-  }
-}
-
-// 获取内涵段子图片 URL
-Future<String> fetchNeihanDuanziImageUrl() async {
-  final response = await http.get(Uri.parse('https://dayu.qqsuu.cn/neihanduanzi/apis.php?type=json'));
-
-  if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
-    if (jsonResponse['code'] == 200) {
-      return jsonResponse['data'];
-    } else {
-      throw Exception('Failed to load image URL');
-    }
-  } else {
-    throw Exception('Failed to load image URL');
   }
 }

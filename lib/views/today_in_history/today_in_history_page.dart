@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart'; 
 import 'package:flutter/services.dart';
+import 'package:yifeng_site/models/today_in_history_model.dart';
+import 'package:yifeng_site/services/today_in_history_api.dart';
 
 class TodayInHistoryPage extends StatefulWidget {
   const TodayInHistoryPage({super.key});
@@ -112,49 +112,6 @@ class _TodayInHistoryPageState extends State<TodayInHistoryPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 获取历史上的今天数据
-Future<TodayInHistoryApiResponse> fetchTodayInHistoryData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/today_in_history'));
-
-  if (response.statusCode == 200) {
-    return TodayInHistoryApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load today in history data');
-  }
-}
-
-// 历史上的今天数据模型类
-class TodayInHistoryApiResponse {
-  final List<HistoryEvent> events;
-
-  TodayInHistoryApiResponse({required this.events});
-
-  factory TodayInHistoryApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data']['items'] as List;  // 修改这里，因为事件数据在 data.items 中
-    List<HistoryEvent> eventsList = list.map((i) => HistoryEvent.fromJson(i)).toList();
-    return TodayInHistoryApiResponse(events: eventsList);
-  }
-}
-
-// 历史事件模型类
-class HistoryEvent {
-  final String title;
-  final String year;
-  final String desc;
-  final String link;
-
-  HistoryEvent({required this.title, required this.year, required this.desc, required this.link});
-
-  factory HistoryEvent.fromJson(Map<String, dynamic> json) {
-    return HistoryEvent(
-      title: json['title'] ?? '',
-      year: json['year'] ?? '',
-      desc: json['description'] ?? '',  // API 返回的是 description
-      link: json['link'] ?? '',
     );
   }
 }

@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:yifeng_site/services/mingxing_bagua_api.dart';
 
 // 明星八卦页面部件
 class MingxingBaguaPage extends StatefulWidget {
@@ -18,7 +18,7 @@ class _MingxingBaguaPageState extends State<MingxingBaguaPage> {
   bool isDownloading = false;
   DateTime selectedDate = DateTime.now();  // 添加日期状态
 
-  // 添加日期选择方法
+  // 日期选择方法
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -178,21 +178,5 @@ class _MingxingBaguaPageState extends State<MingxingBaguaPage> {
       print(e);
       return false;
     }
-  }
-}
-
-// 获取明星八卦图片 URL
-Future<String> fetchMingxingBaguaImageUrl() async {
-  final response = await http.get(Uri.parse('https://dayu.qqsuu.cn/mingxingbagua/apis.php?type=json'));
-
-  if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
-    if (jsonResponse['code'] == 200) {
-      return jsonResponse['data'];
-    } else {
-      throw Exception('Failed to load image URL');
-    }
-  } else {
-    throw Exception('Failed to load image URL');
   }
 }

@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yifeng_site/models/zhihu_model.dart';
+import 'package:yifeng_site/services/zhihu_api.dart';
 
 // 知乎页面部件
 // ignore: must_be_immutable
@@ -133,62 +133,6 @@ class _ZhihuPageState extends State<ZhihuPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 知乎 API 数据模型类
-Future<ZhihuApiResponse> fetchZhihuData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/zhihu'));
-
-  if (response.statusCode == 200) {
-    print(response.body);
-    return ZhihuApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Zhihu data');
-  }
-}
-
-class ZhihuApiResponse {
-  final List<ZhihuItem> items;
-
-  ZhihuApiResponse({required this.items});
-
-  factory ZhihuApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<ZhihuItem> itemList = list.map((i) => ZhihuItem.fromJson(i)).toList();
-    return ZhihuApiResponse(items: itemList);
-  }
-}
-
-class ZhihuItem {
-  final String title;
-  final String detail;
-  final String cover;
-  final String hotValueDesc;
-  final int answerCount;
-  final int followerCount;
-  final String link;
-
-  ZhihuItem({
-    required this.title,
-    required this.detail,
-    required this.cover,
-    required this.hotValueDesc,
-    required this.answerCount,
-    required this.followerCount,
-    required this.link,
-  });
-
-  factory ZhihuItem.fromJson(Map<String, dynamic> json) {
-    return ZhihuItem(
-      title: json['title'] ?? '',
-      detail: json['detail'] ?? '',
-      cover: json['cover'] ?? '',
-      hotValueDesc: json['hot_value_desc'] ?? '',
-      answerCount: json['answer_cnt'] ?? 0,
-      followerCount: json['follower_cnt'] ?? 0,
-      link: json['link'] ?? '',
     );
   }
 }

@@ -22,7 +22,7 @@ import 'package:yifeng_site/views/mingxing_bagua/mingxing_bagua.dart';
 import 'package:yifeng_site/views/moyu_rili/moyu_rili.dart';
 import 'package:yifeng_site/views/moyuribao_page/moyuribao_page.dart';
 import 'package:yifeng_site/views/neihan_duanzi/neihan_duanzi.dart';
-import 'package:yifeng_site/views/news/news_page.dart';
+import 'package:yifeng_site/views/news/toutiao_news_page.dart';
 import 'package:yifeng_site/views/today_in_history/today_in_history_page.dart';
 import 'package:yifeng_site/utils/update_checker.dart';
 import 'package:yifeng_site/views/weibo/weibo_page.dart';
@@ -1323,7 +1323,7 @@ class _MainPageState extends State<MainPage> {
     {
       'text': '头条热搜',
       'icon': Icons.dashboard,
-      'page': NewsPage(),
+      'page': ToutiaoNewsPage(),
     },
     {
       'text': '知乎热搜',

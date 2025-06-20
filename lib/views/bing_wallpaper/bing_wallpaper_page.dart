@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -6,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:yifeng_site/models/bing_wallpaper_model.dart';
+import 'package:yifeng_site/services/bing_wallpaper_api.dart';
 
 // Bing 每日壁纸页面部件
 class BingWallpaperPage extends StatefulWidget {
@@ -173,51 +174,6 @@ class _BingWallpaperPageState extends State<BingWallpaperPage> {
           color: color ?? Colors.black,
         ),
       ),
-    );
-  }
-}
-
-// 获取 Bing 每日壁纸数据
-Future<BingWallpaperApiResponse> fetchBingWallpaperData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/bing'));
-
-  if (response.statusCode == 200) {
-    return BingWallpaperApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Bing wallpaper data');
-  }
-}
-
-// Bing 每日壁纸数据模型类
-class BingWallpaperApiResponse {
-  final String date;
-  final String headline;
-  final String title;
-  final String description;
-  final String imageUrl;
-  final String mainText;
-  final String copyright;
-
-  BingWallpaperApiResponse({
-    required this.date,
-    required this.headline,
-    required this.title,
-    required this.description,
-    required this.imageUrl,
-    required this.mainText,
-    required this.copyright,
-  });
-
-  factory BingWallpaperApiResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'];
-    return BingWallpaperApiResponse(
-      date: data['update_date'] ?? '',
-      headline: data['headline'] ?? '',
-      title: data['title'] ?? '',
-      description: data['description'] ?? '',
-      imageUrl: data['cover'] ?? '', // 注意这里改成了 cover
-      mainText: data['main_text'] ?? '',
-      copyright: data['copyright'] ?? '',
     );
   }
 }

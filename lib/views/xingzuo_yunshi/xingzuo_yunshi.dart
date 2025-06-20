@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:yifeng_site/services/xingzuo_yunshi_api.dart';
 
 // 星座运势页面部件
 class XingzuoYunshiPage extends StatefulWidget {
@@ -180,22 +180,5 @@ class _XingzuoYunshiPageState extends State<XingzuoYunshiPage> {
       print(e);
       return false;
     }
-  }
-}
-
-// 获取星座运势图片 URL
-Future<String> fetchXingzuoYunshiImageUrl() async {
-  final response = await http
-      .get(Uri.parse('https://dayu.qqsuu.cn/xingzuoyunshi/apis.php?type=json'));
-
-  if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
-    if (jsonResponse['code'] == 200) {
-      return jsonResponse['data'];
-    } else {
-      throw Exception('Failed to load image URL');
-    }
-  } else {
-    throw Exception('Failed to load image URL');
   }
 }

@@ -1,18 +1,18 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yifeng_site/models/toutiao_news_model.dart';
+import 'package:yifeng_site/services/toutiao_news_api.dart';
 
 // 新闻页面部件
-class NewsPage extends StatefulWidget {
-  const NewsPage({super.key});
+class ToutiaoNewsPage extends StatefulWidget {
+  const ToutiaoNewsPage({super.key});
 
   @override
-  _NewsPageState createState() => _NewsPageState();
+  _ToutiaoNewsPageState createState() => _ToutiaoNewsPageState();
 }
 
-class _NewsPageState extends State<NewsPage> {
+class _ToutiaoNewsPageState extends State<ToutiaoNewsPage> {
   late Future<NewsApiResponse> _futureData;
 
   @override
@@ -126,64 +126,6 @@ class _NewsPageState extends State<NewsPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 新闻 API 数据模型类
-Future<NewsApiResponse> fetchNewsData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/toutiao'));
-
-  if (response.statusCode == 200) {
-    return NewsApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load news data');
-  }
-}
-
-class NewsApiResponse {
-  final List<NewsItem> items;
-
-  NewsApiResponse({required this.items});
-
-  factory NewsApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<NewsItem> itemList = list.map((i) => NewsItem.fromJson(i)).toList();
-    return NewsApiResponse(items: itemList);
-  }
-}
-
-class NewsItem {
-  final String title;
-  final int hotValue;
-  final String cover;
-  final String link;
-
-  NewsItem({
-    required this.title,
-    required this.hotValue,
-    required this.cover,
-    required this.link,
-  });
-
-  factory NewsItem.fromJson(Map<String, dynamic> json) {
-    return NewsItem(
-      title: json['title'] ?? '',
-      hotValue: json['hot_value'] ?? 0,
-      cover: json['cover'] ?? '',
-      link: json['link'] ?? '',
-    );
-  }
-}
-
-class NewsParams {
-  final int fakeClickCount;
-
-  NewsParams({required this.fakeClickCount});
-
-  factory NewsParams.fromJson(Map<String, dynamic> json) {
-    return NewsParams(
-      fakeClickCount: json['fake_click_cnt'] ?? 0, // Default to 0 if null
     );
   }
 }

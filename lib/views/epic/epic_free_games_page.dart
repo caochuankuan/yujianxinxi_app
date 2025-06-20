@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart'; 
 import 'package:flutter/services.dart';
+import 'package:yifeng_site/models/epic_game.dart';
+import 'package:yifeng_site/services/epic_game_api.dart';
 
 // Epic 免费游戏页面部件
 class EpicFreeGamesPage extends StatefulWidget {
@@ -154,55 +154,6 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 获取 Epic 免费游戏数据
-Future<List<EpicGame>> fetchEpicFreeGames() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/epic'));
-
-  if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
-    final List<dynamic> gamesJson = jsonResponse['data'];
-    return gamesJson.map((json) => EpicGame.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to load Epic free games');
-  }
-}
-
-// Epic 免费游戏数据模型类
-class EpicGame {
-  final String title;
-  final String description;
-  final String thumbnailUrl;
-  final String link;
-  final bool isCurrentlyFree;
-  final String originalPrice;
-  final String freeStartTime;
-  final String freeEndTime;
-
-  EpicGame({
-    required this.title,
-    required this.description,
-    required this.thumbnailUrl,
-    required this.link,
-    required this.isCurrentlyFree,
-    required this.originalPrice,
-    required this.freeStartTime,
-    required this.freeEndTime,
-  });
-
-  factory EpicGame.fromJson(Map<String, dynamic> json) {
-    return EpicGame(
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      thumbnailUrl: json['cover'] ?? '',
-      link: json['link'] ?? '',
-      isCurrentlyFree: json['is_free_now'] ?? false,
-      originalPrice: json['original_price_desc'] ?? '',
-      freeStartTime: json['free_start'] ?? '',
-      freeEndTime: json['free_end'] ?? '',
     );
   }
 }

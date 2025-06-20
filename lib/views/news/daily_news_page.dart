@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -9,6 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+import 'package:yifeng_site/models/daily_news_model.dart';
+import 'package:yifeng_site/services/daily_news_api.dart';
 
 // 每日新闻页面部件
 class DailyNewsPage extends StatefulWidget {
@@ -326,53 +327,5 @@ class _DailyNewsPageState extends State<DailyNewsPage> {
         duration: const Duration(seconds: 2),
       ),
     );
-  }
-}
-
-// 每日新闻数据模型类
-class DailyNewsApiResponse {
-  final List<String> news;
-  final String tip;
-  final String url;
-  final String cover;
-
-  DailyNewsApiResponse(
-      {required this.news,
-      required this.tip,
-      required this.url,
-      required this.cover});
-
-  factory DailyNewsApiResponse.fromJson(Map<String, dynamic> json) {
-    try {
-      final data = json['data'];
-      if (data == null) throw Exception('No data field in response');
-      
-      return DailyNewsApiResponse(
-        news: List<String>.from(data['news'] ?? []),
-        tip: data['tip'] ?? '',
-        url: data['url'] ?? '',
-        cover: data['cover'] ?? '',
-      );
-    } catch (e) {
-      print('Error parsing DailyNewsApiResponse: $e');
-      // 返回一个带有默认值的对象
-      return DailyNewsApiResponse(
-        news: ['暂时无法获取新闻，请稍后重试'],
-        tip: '数据加载失败',
-        url: '',
-        cover: '',
-      );
-    }
-  }
-}
-
-// 获取每日新闻数据
-Future<DailyNewsApiResponse> fetchDailyNewsData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/60s'));
-
-  if (response.statusCode == 200) {    
-    return DailyNewsApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load daily news data');
   }
 }

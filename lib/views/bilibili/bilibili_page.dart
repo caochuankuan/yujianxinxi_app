@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
+import 'package:yifeng_site/models/bilibili_item.dart';
+import 'package:yifeng_site/services/bilibili_api.dart';
 
-// B 站页面部件
 class BilibiliPage extends StatefulWidget {
   const BilibiliPage({super.key});
 
@@ -99,17 +98,6 @@ class _BilibiliPageState extends State<BilibiliPage> {
     }
   }
 
-  // 跳转到百度搜索
-  // ignore: unused_element
-  void _searchOnBaidu(String query) async {
-    final url = 'https://www.baidu.com/s?wd=${Uri.encodeComponent(query)}';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
   // 复制文本到剪贴板并显示 SnackBar
   void _copyToClipboard(String text) {
     Clipboard.setData(ClipboardData(text: text));
@@ -118,50 +106,6 @@ class _BilibiliPageState extends State<BilibiliPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// B 站 API 数据模型类
-Future<BilibiliApiResponse> fetchBilibiliData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/bili'));
-
-  if (response.statusCode == 200) {
-    return BilibiliApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Bilibili data');
-  }
-}
-
-class BilibiliApiResponse {
-  final List<BilibiliItem> items;
-
-  BilibiliApiResponse({required this.items});
-
-  factory BilibiliApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<BilibiliItem> itemList = list.map((i) => BilibiliItem.fromJson(i)).toList();
-    return BilibiliApiResponse(items: itemList);
-  }
-}
-
-class BilibiliItem {
-  final String title;  // 改用 title 替代 keyword
-  final String link;   // 改用 link 替代 icon
-  final int position;  // 保持 position 用于显示序号
-
-  BilibiliItem({
-    required this.title,
-    required this.link,
-    required this.position,
-  });
-
-  factory BilibiliItem.fromJson(Map<String, dynamic> json) {
-    int counter = 0;  // 用于生成位置序号
-    return BilibiliItem(
-      title: json['title'] ?? '',
-      link: json['link'] ?? '',
-      position: ++counter,  // 自动生成序号
     );
   }
 }

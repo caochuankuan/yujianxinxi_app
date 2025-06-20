@@ -1,10 +1,10 @@
 // ignore_for_file: must_be_immutable
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:yifeng_site/models/weibo_model.dart';
+import 'package:yifeng_site/services/weibo_api.dart';
 
 // 微博页面部件
 class WeiboPage extends StatefulWidget {
@@ -116,49 +116,6 @@ class _WeiboPageState extends State<WeiboPage> {
         content: Text('已复制: "$text"'),
         duration: const Duration(seconds: 2),
       ),
-    );
-  }
-}
-
-// 微博 API 数据模型类
-Future<WeiboApiResponse> fetchWeiboData() async {
-  final response = await http.get(Uri.parse('https://60s-api.viki.moe/v2/weibo'));
-
-  if (response.statusCode == 200) {
-    return WeiboApiResponse.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to load Weibo data');
-  }
-}
-
-class WeiboApiResponse {
-  final List<WeiboItem> items;
-
-  WeiboApiResponse({required this.items});
-
-  factory WeiboApiResponse.fromJson(Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    List<WeiboItem> itemList = list.map((i) => WeiboItem.fromJson(i)).toList();
-    return WeiboApiResponse(items: itemList);
-  }
-}
-
-class WeiboItem {
-  final String title;
-  final int hotValue;
-  final String link;
-
-  WeiboItem({
-    required this.title,
-    required this.hotValue,
-    required this.link,
-  });
-
-  factory WeiboItem.fromJson(Map<String, dynamic> json) {
-    return WeiboItem(
-      title: json['title'] ?? '',
-      hotValue: json['hot_value'] ?? 0,
-      link: json['link'] ?? '',
     );
   }
 }
