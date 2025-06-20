@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; 
-import 'package:flutter/services.dart';
 import 'package:yifeng_site/models/today_in_history_model.dart';
 import 'package:yifeng_site/services/today_in_history_api.dart';
+import 'package:yifeng_site/utils/copy2clipboard.dart';
+import 'package:yifeng_site/utils/launch_url.dart';
 
 class TodayInHistoryPage extends StatefulWidget {
   const TodayInHistoryPage({super.key});
@@ -62,11 +62,11 @@ class _TodayInHistoryPageState extends State<TodayInHistoryPage> {
                   child: InkWell(
                     onTap: () {
                       if (event.link.isNotEmpty) {
-                        _launchURL(event.link);
+                        launchURL(event.link);
                       }
                     },
                     onLongPress: () {
-                      _copyToClipboard('${event.title} (${event.year}): ${event.desc}');
+                      copyToClipboard('${event.title} (${event.year}): ${event.desc}', context);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
@@ -91,26 +91,6 @@ class _TodayInHistoryPageState extends State<TodayInHistoryPage> {
             );
           }
         },
-      ),
-    );
-  }
-
-  // 跳转到链接
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  // 复制文本到剪贴板并显示 SnackBar
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已复制: "$text"'),
-        duration: const Duration(seconds: 2),
       ),
     );
   }

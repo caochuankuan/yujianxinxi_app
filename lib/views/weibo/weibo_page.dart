@@ -1,10 +1,8 @@
-// ignore_for_file: must_be_immutable
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:yifeng_site/models/weibo_model.dart';
 import 'package:yifeng_site/services/weibo_api.dart';
+import 'package:yifeng_site/utils/copy2clipboard.dart';
+import 'package:yifeng_site/utils/launch_url.dart';
 
 // 微博页面部件
 class WeiboPage extends StatefulWidget {
@@ -64,8 +62,8 @@ class _WeiboPageState extends State<WeiboPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _launchURL(item.link),
-                    onLongPress: () => _copyToClipboard('${index + 1}. ${item.title}'),
+                    onTap: () => launchURL(item.link),
+                    onLongPress: () => copyToClipboard('${index + 1}. ${item.title}', context),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(12.0),
                       title: Row(
@@ -95,26 +93,6 @@ class _WeiboPageState extends State<WeiboPage> {
             );
           }
         },
-      ),
-    );
-  }
-
-  // 跳转到百度搜索
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  // 复制文本到剪贴板并显示 SnackBar
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已复制: "$text"'),
-        duration: const Duration(seconds: 2),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/services.dart';
 import 'package:yifeng_site/models/bilibili_item.dart';
 import 'package:yifeng_site/services/bilibili_api.dart';
+import 'package:yifeng_site/utils/copy2clipboard.dart';
+import 'package:yifeng_site/utils/launch_url.dart';
 
 class BilibiliPage extends StatefulWidget {
   const BilibiliPage({super.key});
@@ -77,34 +77,14 @@ class _BilibiliPageState extends State<BilibiliPage> {
                       ],
                     ),
                     subtitle: null,  // 移除热度 ID 显示
-                    onTap: () => _launchURL(item.link),  // 直接使用 link 打开链接
-                    onLongPress: () => _copyToClipboard(item.title),  // 复制标题
+                    onTap: () => launchURL(item.link),  // 直接使用 link 打开链接
+                    onLongPress: () => copyToClipboard(item.title, context),  // 复制标题
                   ),
                 );
               },
             );
           }
         },
-      ),
-    );
-  }
-  
-    // 跳转到链接
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  // 复制文本到剪贴板并显示 SnackBar
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已复制: "$text"'),
-        duration: const Duration(seconds: 2),
       ),
     );
   }

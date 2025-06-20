@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; 
-import 'package:flutter/services.dart';
 import 'package:yifeng_site/models/epic_game.dart';
 import 'package:yifeng_site/services/epic_game_api.dart';
+import 'package:yifeng_site/utils/copy2clipboard.dart';
+import 'package:yifeng_site/utils/launch_url.dart';
 
 // Epic 免费游戏页面部件
 class EpicFreeGamesPage extends StatefulWidget {
@@ -65,9 +65,9 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: InkWell(
-                    onTap: () => _launchURL(game.link),
+                    onTap: () => launchURL(game.link),
                     onLongPress: () {
-                      _copyToClipboard(game.title);
+                      copyToClipboard(game.title, context);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
@@ -132,27 +132,6 @@ class _EpicFreeGamesPageState extends State<EpicFreeGamesPage> {
             );
           }
         },
-      ),
-    );
-  }
-
-  // 跳转到游戏链接
-  void _launchURL(String urlSlug) async {
-    final url = 'https://www.epicgames.com/store/en-US/p/$urlSlug';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
-  }
-
-  // 复制文本到剪贴板并显示 SnackBar
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已复制: "$text"'),
-        duration: const Duration(seconds: 2),
       ),
     );
   }
